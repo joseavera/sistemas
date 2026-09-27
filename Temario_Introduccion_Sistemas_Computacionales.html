@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temario — Introducción a los Sistemas Computacionales</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: .5rem;
+    padding: .5rem 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--guinda-mid);
+    font-weight: 600;
+  }
+  @media (max-width: 560px) {
+    .info-list li { grid-template-columns: 1fr; gap: .15rem; }
+  }
+
+  /* Mapa de unidades */
+  .unit-map {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0 2rem;
+  }
+  @media (max-width: 760px) {
+    .unit-map { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 460px) {
+    .unit-map { grid-template-columns: 1fr; }
+  }
+  .unit-chip {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .unit-chip .unit-chip-icon {
+    width: 46px; height: 46px;
+    margin: 0 auto .6rem;
+    border-radius: 50%;
+    background: var(--white);
+    border: 2px solid var(--guinda);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .unit-chip .unit-chip-icon svg { width: 24px; height: 24px; }
+  .unit-chip .unit-chip-n {
+    font-family: var(--font-ui);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--guinda-mid);
+    display: block;
+    margin-bottom: .2rem;
+  }
+  .unit-chip .unit-chip-title {
+    font-family: var(--font-ui);
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  /* Bloque de unidad detallado */
+  .unit-block {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 1.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .unit-block-header {
+    background: var(--guinda);
+    color: var(--white);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .unit-block-header .unit-name {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .unit-block-header .unit-weight {
+    font-family: var(--font-ui);
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    background: rgba(255,255,255,.16);
+    padding: .3rem .8rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .unit-block-body {
+    padding: 1.4rem 1.6rem;
+    background: var(--off-white);
+  }
+  .unit-purpose {
+    font-size: .96rem;
+    color: var(--ink-secondary);
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+  .unit-topics { margin-bottom: 1rem; }
+  .unit-topics li { margin-bottom: .3rem; font-size: .96rem; }
+  .unit-product {
+    background: var(--guinda-light);
+    border: 1px solid #D8A8BA;
+    border-radius: var(--radius-sm);
+    padding: .7rem 1rem;
+    font-size: .9rem;
+    margin-bottom: .9rem;
+  }
+  .unit-product strong { color: var(--guinda-dark); }
+  .unit-refs {
+    font-size: .85rem;
+    color: var(--ink-muted);
+  }
+  .unit-refs .section-label { margin-bottom: .3rem; }
+
+  /* Barra de evaluación */
+  .weight-bar {
+    display: flex;
+    width: 100%;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin: 1rem 0 1.25rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .weight-bar span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-family: var(--font-ui);
+    font-size: .78rem;
+    font-weight: 600;
+  }
+  .weight-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.1rem;
+    font-size: .88rem;
+    margin-bottom: 1.5rem;
+  }
+  .weight-legend .legend-item { display: flex; align-items: center; gap: .45rem; }
+  .weight-legend .legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap">
+      <img src="imagen1.png" alt="Logo IEDEP">
+    </div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Temario del curso — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Programa completo del curso</span>
+    <h1>Introducción a los Sistemas Computacionales</h1>
+    <span class="class-subtitle">De los primeros bulbos a la inteligencia artificial: un recorrido por el hardware, el software, las redes y la seguridad que sostienen el mundo digital.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Lic. en Sistemas Computacionales</span></div>
+      <div class="meta-item">Créditos<span>7</span></div>
+      <div class="meta-item">Horas totales<span>112 h</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA DEL CURSO ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha del curso</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Cuatrimestre</span><span>Primero</span></li>
+          <li><span class="info-label">Horas conducidas / independientes</span><span>32 h / 80 h</span></li>
+          <li><span class="info-label">Créditos</span><span>7</span></li>
+          <li><span class="info-label">Asesor</span><span>Mtro. José Armando Vera Rodríguez</span></li>
+        </ul>
+      </div>
+
+      <div class="concept-box">
+        <span class="concept-title">Propósito general de la asignatura</span>
+        <p>Integrar los fundamentos teóricos y técnicos de la arquitectura de computadoras, sistemas operativos, infraestructura de redes y seguridad informática, mediante el análisis de componentes físicos, la simulación de entornos lógicos y la evaluación de normativas éticas vigentes, con el propósito de diseñar y gestionar soluciones tecnológicas integrales que optimicen el procesamiento de información y aseguren la integridad operativa en diversos contextos profesionales.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════ MAPA DE UNIDADES ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Mapa del curso</h2>
+      <p>El curso se organiza en cuatro unidades que avanzan de lo físico a lo abstracto: primero el hardware que puedes tocar, después el software que lo pone en marcha, luego las redes que lo conectan con el mundo y, finalmente, la seguridad y la ética que lo hacen confiable.</p>
+
+      <div class="unit-map">
+        <div class="unit-chip">
+          <div class="unit-chip-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="15" y="15" width="18" height="18" rx="1.5" stroke="#7B1034" stroke-width="2.2"/>
+              <rect x="21" y="21" width="6" height="6" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="19" y1="15" x2="19" y2="9" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="29" y1="15" x2="29" y2="9" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="19" y1="33" x2="19" y2="39" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="29" y1="33" x2="29" y2="39" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="15" y1="19" x2="9" y2="19" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="15" y1="29" x2="9" y2="29" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="33" y1="19" x2="39" y2="19" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="33" y1="29" x2="39" y2="29" stroke="#7B1034" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <span class="unit-chip-n">Unidad 1 · 30 %</span>
+          <span class="unit-chip-title">Arquitectura y Hardware de Computadoras</span>
+        </div>
+        <div class="unit-chip">
+          <div class="unit-chip-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="12" width="28" height="22" rx="1.5" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="10" y1="18" x2="38" y2="18" stroke="#7B1034" stroke-width="1.8"/>
+              <circle cx="14" cy="15" r="1.1" fill="#7B1034"/>
+              <circle cx="18" cy="15" r="1.1" fill="#7B1034"/>
+            </svg>
+          </div>
+          <span class="unit-chip-n">Unidad 2 · 25 %</span>
+          <span class="unit-chip-title">Software de Sistema y de Aplicación</span>
+        </div>
+        <div class="unit-chip">
+          <div class="unit-chip-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="3" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="34" cy="14" r="3" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="24" cy="24" r="3.5" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="14" cy="34" r="3" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="34" cy="34" r="3" stroke="#7B1034" stroke-width="2"/>
+              <line x1="16.5" y1="16" x2="21.5" y2="22" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="31.5" y1="16" x2="26.5" y2="22" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="16.5" y1="32" x2="21.5" y2="26" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="31.5" y1="32" x2="26.5" y2="26" stroke="#7B1034" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <span class="unit-chip-n">Unidad 3 · 25 %</span>
+          <span class="unit-chip-title">Infraestructura de Redes y Conectividad</span>
+        </div>
+        <div class="unit-chip">
+          <div class="unit-chip-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 8 L36 13 V23 C36 31 31 36 24 40 C17 36 12 31 12 23 V13 Z" stroke="#7B1034" stroke-width="2.2" stroke-linejoin="round"/>
+              <path d="M19 23 L22.5 27 L29 19" stroke="#7B1034" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="unit-chip-n">Unidad 4 · 20 %</span>
+          <span class="unit-chip-title">Seguridad, Ética y Tendencias Tecnológicas</span>
+        </div>
+      </div>
+
+      <div class="weight-bar">
+        <span style="width:30%; background:#7B1034;">30 %</span>
+        <span style="width:25%; background:#96324C;">25 %</span>
+        <span style="width:25%; background:#B0526C;">25 %</span>
+        <span style="width:20%; background:#C87390;">20 %</span>
+      </div>
+      <div class="weight-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#7B1034;"></span>Unidad 1 — Fichas técnicas de hardware</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#96324C;"></span>Unidad 2 — Informe de caso práctico</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#B0526C;"></span>Unidad 3 — Bitácora de red</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#C87390;"></span>Unidad 4 — Manual de seguridad</span>
+      </div>
+    </section>
+
+    <!-- ══════════════ UNIDAD 1 ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Contenido detallado por unidad</h2>
+
+      <div class="unit-block">
+        <div class="unit-block-header">
+          <span class="unit-name">Unidad 1 — Arquitectura y Hardware de Computadoras</span>
+          <span class="unit-weight">Peso: 30 %</span>
+        </div>
+        <div class="unit-block-body">
+          <p class="unit-purpose">Usar los componentes de la Arquitectura de Von Neumann (CPU, Memoria, E/S) y los sistemas de numeración, tomando como base el análisis de su funcionamiento electrónico y lógico, con el propósito de comprender cómo los datos físicos se transforman en información procesable.</p>
+          <ol class="unit-topics">
+            <li>1.1 Evolución histórica y generaciones de las computadoras.</li>
+            <li>1.2 Arquitectura de Von Neumann y componentes del CPU (ALU, UC, Registros).</li>
+            <li>1.3 Jerarquía de memorias (RAM, Caché, Almacenamiento secundario).</li>
+            <li>1.4 Dispositivos de entrada, salida y buses de comunicación.</li>
+          </ol>
+          <div class="unit-product"><strong>Producto de aprendizaje:</strong> Fichas técnicas en las que se clasifican los componentes de hardware.</div>
+          <div class="unit-refs"><span class="section-label">Bibliografía de la unidad</span>Stallings, W. (2025). <em>Organización y arquitectura de computadoras</em> (11.ª ed.). Pearson Educación.</div>
+        </div>
+      </div>
+
+      <!-- ══════════════ UNIDAD 2 ══════════════ -->
+      <div class="unit-block">
+        <div class="unit-block-header">
+          <span class="unit-name">Unidad 2 — Software de Sistema y de Aplicación</span>
+          <span class="unit-weight">Peso: 25 %</span>
+        </div>
+        <div class="unit-block-body">
+          <p class="unit-purpose">Contrastar los tipos de software y las funciones críticas del Sistema Operativo, a través de la revisión de esquemas de licenciamiento y administración de procesos, con el propósito de seleccionar las herramientas adecuadas respetando la normativa de propiedad intelectual y eficiencia técnica.</p>
+          <ol class="unit-topics">
+            <li>2.1 Clasificación y evolución del software: base, aplicación y herramientas de desarrollo.</li>
+            <li>2.2 Funciones críticas del Sistema Operativo (gestión de procesos y memoria).</li>
+            <li>2.3 Tipos de licenciamiento: software libre, propietario y modelos SaaS.</li>
+            <li>2.4 El ecosistema de los sistemas operativos actuales (Windows, Linux, macOS, Android/iOS).</li>
+          </ol>
+          <div class="unit-product"><strong>Producto de aprendizaje:</strong> Informe de solución de caso práctico de un escenario hipotético con requerimientos definidos.</div>
+          <div class="unit-refs"><span class="section-label">Bibliografía de la unidad</span>Floyd, T. L. (2021). <em>Fundamentos de sistemas digitales</em>. Pearson Educación.</div>
+        </div>
+      </div>
+
+      <!-- ══════════════ UNIDAD 3 ══════════════ -->
+      <div class="unit-block">
+        <div class="unit-block-header">
+          <span class="unit-name">Unidad 3 — Infraestructura de Redes y Conectividad</span>
+          <span class="unit-weight">Peso: 25 %</span>
+        </div>
+        <div class="unit-block-body">
+          <p class="unit-purpose">Planear la distribución de topologías de red y la asignación de protocolos de comunicación, empleando los lineamientos estandarizados del modelo OSI y la suite TCP/IP, con el objeto de diseñar infraestructuras de conectividad que aseguren la integridad y el flujo eficiente de la información.</p>
+          <ol class="unit-topics">
+            <li>3.1 Conceptos fundamentales de telecomunicaciones y transmisión de datos.</li>
+            <li>3.2 Clasificación de redes (PAN, LAN, WAN) y topologías físicas.</li>
+            <li>3.3 Introducción conceptual al modelo OSI y protocolo TCP/IP.</li>
+            <li>3.4 Internet de las cosas (IoT) y el impacto de la conectividad 5G.</li>
+          </ol>
+          <div class="unit-product"><strong>Producto de aprendizaje:</strong> Bitácora de simulación y topología de red.</div>
+          <div class="unit-refs"><span class="section-label">Bibliografía de la unidad</span>Silberschatz, A., Galvin, P. B. y Gagne, G. (2021). <em>Operating System Concepts</em> (10.ª ed.). Wiley. · Tanenbaum, A. S. y Bos, H. (2023). <em>Modern Operating Systems</em> (5.ª ed.). Pearson.</div>
+        </div>
+      </div>
+
+      <!-- ══════════════ UNIDAD 4 ══════════════ -->
+      <div class="unit-block">
+        <div class="unit-block-header">
+          <span class="unit-name">Unidad 4 — Seguridad, Ética y Tendencias Tecnológicas</span>
+          <span class="unit-weight">Peso: 20 %</span>
+        </div>
+        <div class="unit-block-body">
+          <p class="unit-purpose">Integrar los principios de la seguridad informática y la ética profesional con las tendencias tecnológicas emergentes, mediante el análisis del impacto de la computación en la nube, la virtualización y la inteligencia artificial, con el fin de salvaguardar la integridad de la información y adaptarse a los nuevos entornos digitales de manera responsable.</p>
+          <ol class="unit-topics">
+            <li>4.1 Principios de ciberseguridad: confidencialidad, integridad y disponibilidad.</li>
+            <li>4.2 Ética profesional del ingeniero y legislación informática básica.</li>
+            <li>4.3 Computación en la nube (Cloud Computing) y virtualización de sistemas.</li>
+            <li>4.4 Impacto actual de la Inteligencia Artificial y la Ciencia de Datos en la sociedad.</li>
+          </ol>
+          <div class="unit-product"><strong>Producto de aprendizaje:</strong> Manual gráfico de buenas prácticas de seguridad.</div>
+          <div class="unit-refs"><span class="section-label">Bibliografía de la unidad</span>Joyanes Aguilar, L. (2020). <em>Fundamentos de programación: algoritmos, estructura de datos y objetos</em> (5.ª ed.). McGraw-Hill. · Beekman, G. (2019). <em>Digital Planet: Tomorrow's Technology and You</em>. Pearson.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mascot-tip" style="display:flex; align-items:center; gap:1.4rem; background:var(--guinda-light); border:1px solid #D8A8BA; border-radius:var(--radius-lg); padding:1.3rem 1.6rem; margin:1.75rem 0;">
+      <img src="imagen2.png" alt="Mascota Mixtle" style="width:82px; height:auto; flex-shrink:0;">
+      <div>
+        <span style="font-family:var(--font-ui); font-size:.72rem; text-transform:uppercase; letter-spacing:.12em; color:var(--guinda); font-weight:700; display:block; margin-bottom:.3rem;">Mensaje de bienvenida</span>
+        <p style="font-size:.95rem; margin-bottom:0;">Mixtle te acompañará en cada clase de este curso. No necesitas llegar sabiendo de computadoras: solo curiosidad para desarmar, con calma, cómo funciona por dentro el equipo que usas todos los días.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ EVALUACIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Criterios e instrumentos de evaluación</h2>
+      <table>
+        <thead>
+          <tr><th>Instrumento</th><th>Unidad</th><th>Ponderación</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Fichas técnicas de clasificación de componentes de hardware</td><td>1</td><td>30 %</td></tr>
+          <tr><td>Informe de solución de caso práctico</td><td>2</td><td>25 %</td></tr>
+          <tr><td>Bitácora de simulación y topología de red</td><td>3</td><td>25 %</td></tr>
+          <tr><td>Manual gráfico de buenas prácticas de seguridad</td><td>4</td><td>20 %</td></tr>
+          <tr><td><strong>Total</strong></td><td></td><td><strong>100 %</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="text-sm text-muted">La evaluación es formativa a lo largo del cuatrimestre: cada producto se retroalimenta antes de integrarse al promedio final.</p>
+    </section>
+
+    <!-- ══════════════ RECURSOS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Recursos didácticos del curso</h2>
+      <ul>
+        <li>Repositorios digitales: biblioteca virtual y recursos educativos abiertos de revistas académicas.</li>
+        <li>Apps educativas gratuitas.</li>
+        <li>Sistemas de evaluación: Google Forms.</li>
+        <li>Recursos de comunicación: correo electrónico.</li>
+        <li>Inteligencia artificial generativa.</li>
+      </ul>
+    </section>
+
+    <!-- ══════════════ BIBLIOGRAFÍA COMPLETA ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Bibliografía completa del curso</h2>
+      <p class="text-sm">Stallings, W. (2025). <em>Organización y arquitectura de computadoras</em> (11.ª ed.). Pearson Educación.</p>
+      <p class="text-sm">Floyd, T. L. (2021). <em>Fundamentos de sistemas digitales</em>. Pearson Educación.</p>
+      <p class="text-sm">Silberschatz, A., Galvin, P. B. y Gagne, G. (2021). <em>Operating System Concepts</em> (10.ª ed.). Wiley.</p>
+      <p class="text-sm">Tanenbaum, A. S. y Bos, H. (2023). <em>Modern Operating Systems</em> (5.ª ed.). Pearson.</p>
+      <p class="text-sm">Joyanes Aguilar, L. (2020). <em>Fundamentos de programación: algoritmos, estructura de datos y objetos</em> (5.ª ed.). McGraw-Hill.</p>
+      <p class="text-sm">Beekman, G. (2019). <em>Digital Planet: Tomorrow's Technology and You</em>. Pearson.</p>
+    </section>
+
+    <!-- ══════════════ CIERRE ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Antes de empezar</h2>
+      <p>Este temario es tu mapa del cuatrimestre: úsalo para ubicar en qué unidad estás, qué producto se acerca y cuánto pesa en tu calificación final. Cada unidad se acompañará de sesiones y materiales específicos que iremos compartiendo clase por clase.</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Temario completo</span>
+  </footer>
+
+</body>
+</html>
