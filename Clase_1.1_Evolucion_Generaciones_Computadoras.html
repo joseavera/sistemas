@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 1.1 — Evolución histórica y generaciones de las computadoras</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* ── Estilos complementarios específicos de esta clase ─────── */
+  .mascot-tip {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    background: var(--guinda-light);
+    border: 1px solid #D8A8BA;
+    border-radius: var(--radius-lg);
+    padding: 1.3rem 1.6rem;
+    margin: 1.75rem 0;
+  }
+  .mascot-tip img { width: 82px; height: auto; flex-shrink: 0; }
+  .mascot-tip .mascot-text .mascot-label {
+    font-family: var(--font-ui);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--guinda);
+    font-weight: 700;
+    display: block;
+    margin-bottom: .3rem;
+  }
+  .mascot-tip .mascot-text p { font-size: .95rem; margin-bottom: 0; }
+
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: .5rem;
+    padding: .5rem 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--guinda-mid);
+    font-weight: 600;
+  }
+  @media (max-width: 560px) {
+    .info-list li { grid-template-columns: 1fr; gap: .15rem; }
+  }
+
+  /* Línea de tiempo de generaciones */
+  .timeline { position: relative; margin: 2rem 0; }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 27px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--guinda-rule);
+  }
+  .gen-item {
+    position: relative;
+    padding-left: 68px;
+    margin-bottom: 2rem;
+  }
+  .gen-item:last-child { margin-bottom: 0; }
+  .gen-icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 2px solid var(--guinda);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .gen-icon svg { width: 30px; height: 30px; }
+  .gen-card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.4rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .gen-card .gen-title {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    color: var(--guinda);
+    font-size: 1rem;
+    margin-bottom: .15rem;
+  }
+  .gen-card .gen-years {
+    font-family: var(--font-ui);
+    font-size: .78rem;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: .6rem;
+    display: block;
+  }
+  .gen-card .gen-analogy {
+    background: var(--surface);
+    border-left: 3px solid var(--guinda-rule);
+    padding: .55rem .9rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: .9rem;
+    margin-top: .7rem;
+    color: var(--ink-secondary);
+  }
+  .gen-card .gen-analogy strong { color: var(--guinda-dark); }
+
+  .compare-table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap">
+      <img src="imagen1.png" alt="Logo IEDEP">
+    </div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Guía de clase — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Unidad 1 · Arquitectura y Hardware de Computadoras</span>
+    <h1>Evolución histórica y generaciones de las computadoras</h1>
+    <span class="class-subtitle">Un recorrido por los saltos tecnológicos que transformaron máquinas del tamaño de un salón en el equipo que hoy cabe en tu mochila.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Fecha<span>Lunes 14 de septiembre de 2026</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA DE LA CLASE ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha de la clase</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Unidad</span><span>1. Arquitectura y Hardware de Computadoras</span></li>
+          <li><span class="info-label">Tema</span><span>1.1 Evolución histórica y generaciones de las computadoras</span></li>
+          <li><span class="info-label">Fecha</span><span>Lunes 14 de septiembre de 2026</span></li>
+        </ul>
+      </div>
+
+      <span class="section-label">Competencias a desarrollar</span>
+      <div class="competency-card">
+        <span class="comp-num">01</span>
+        <span class="comp-text"><strong>Competencia de unidad:</strong> Usar los componentes de la Arquitectura de Von Neumann (CPU, Memoria, E/S) y los sistemas de numeración, tomando como base el análisis de su funcionamiento electrónico y lógico, con el propósito de comprender cómo los datos físicos se transforman en información procesable.</span>
+      </div>
+      <div class="competency-card">
+        <span class="comp-num">02</span>
+        <span class="comp-text"><strong>Competencia del tema:</strong> Reconocer la evolución histórica y las generaciones de las computadoras, identificando los avances tecnológicos que caracterizan a cada una, para valorar el contexto histórico que dio origen a la arquitectura de las computadoras actuales.</span>
+      </div>
+    </section>
+
+    <!-- ══════════════ INTRODUCCIÓN / ANALOGÍA ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">¿Por qué conocer la historia de la computadora?</h2>
+      <p>Imagina que pudieras ver, en una sola fotografía familiar, a tu bisabuelo, tu abuelo, tu papá y a ti mismo. Notarías que compartes rasgos con todos ellos, pero también verías cuánto ha cambiado la familia con cada generación. Con las computadoras ocurre algo muy parecido: cada "generación" tecnológica hereda ideas de la anterior, pero las mejora de forma tan radical que el resultado final apenas se parece al punto de partida.</p>
+      <p>Entender esta historia no es solo un dato curioso: es la base para comprender <em>por qué</em> las computadoras actuales están construidas como están. Cuando en las próximas clases hablemos de la <strong>Arquitectura de Von Neumann</strong>, del CPU o de la jerarquía de memorias, veremos que cada una de esas piezas es el resultado de decisiones tomadas para resolver los problemas que enfrentaron las generaciones anteriores.</p>
+
+      <div class="concept-box">
+        <span class="concept-title">Antes de la era electrónica</span>
+        <p>Mucho antes de los circuitos, la humanidad ya buscaba automatizar el cálculo: el <strong>ábaco</strong> (hace más de 2,000 años), la <strong>máquina de Pascal</strong> (1642), y el <strong>motor analítico de Charles Babbage</strong> (siglo XIX), para el cual <strong>Ada Lovelace</strong> escribió lo que se considera el primer algoritmo destinado a ser ejecutado por una máquina. Estas ideas mecánicas sembraron la semilla de lo que, un siglo después, se convertiría en la computadora electrónica.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════ LAS 5 GENERACIONES ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Las cinco generaciones de las computadoras</h2>
+      <p>Cada generación se distingue principalmente por la <strong>tecnología usada para construir sus circuitos</strong>. Recorre la línea de tiempo: en cada parada encontrarás el periodo, la tecnología clave, un ejemplo real y una analogía para que la idea se quede contigo.</p>
+
+      <div class="timeline">
+
+        <!-- Generación 1 -->
+        <div class="gen-item">
+          <div class="gen-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="24" cy="18" rx="11" ry="14" stroke="#7B1034" stroke-width="2.2"/>
+              <path d="M18 30 L18 36 Q18 40 24 40 Q30 40 30 36 L30 30" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="20" y1="40" x2="20" y2="43" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="28" y1="40" x2="28" y2="43" stroke="#7B1034" stroke-width="2.2"/>
+              <path d="M19 14 Q24 8 29 14" stroke="#7B1034" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div class="gen-card">
+            <span class="gen-title">1.ª Generación — Bulbos (tubos de vacío)</span>
+            <span class="gen-years">Aprox. 1940 – 1956 · Ejemplo: ENIAC (1946), UNIVAC I (1951)</span>
+            <p>Las primeras computadoras electrónicas usaban <strong>bulbos o tubos de vacío</strong> —muy parecidos a un foco incandescente— para representar y controlar el paso de la corriente eléctrica (los "unos y ceros"). El ENIAC llenaba un salón completo, pesaba unas 27 toneladas y consumía tanta electricidad que, según cuenta la leyenda, atenuaba las luces de la ciudad al encenderse. Se programaba conectando físicamente cables, un proceso que podía tardar días.</p>
+            <div class="gen-analogy"><strong>Analogía:</strong> un bulbo es como una vela dentro de un farol: da luz, pero se calienta muchísimo, se quema con facilidad y ocupa bastante espacio para el poco "trabajo útil" que entrega.</div>
+          </div>
+        </div>
+
+        <!-- Generación 2 -->
+        <div class="gen-item">
+          <div class="gen-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="22" r="9" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="24" y1="4" x2="24" y2="13" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="16" y1="30" x2="10" y2="40" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="32" y1="30" x2="38" y2="40" stroke="#7B1034" stroke-width="2.2"/>
+            </svg>
+          </div>
+          <div class="gen-card">
+            <span class="gen-title">2.ª Generación — Transistores</span>
+            <span class="gen-years">Aprox. 1956 – 1963 · Ejemplo: IBM 1401</span>
+            <p>El <strong>transistor</strong> (inventado en los Laboratorios Bell en 1947) sustituyó a los bulbos: cumplía la misma función —controlar el paso de la corriente— pero era mucho más pequeño, más rápido, más confiable y generaba muchísimo menos calor. Esto permitió construir computadoras más compactas y económicas. También aparecieron los primeros lenguajes de programación de alto nivel, como <strong>FORTRAN</strong> y <strong>COBOL</strong>, que evitaban programar directamente en código máquina.</p>
+            <div class="gen-analogy"><strong>Analogía:</strong> si el bulbo era una vela, el transistor es como cambiar esa vela por un foco LED diminuto: mismo propósito, una fracción del tamaño y del consumo de energía.</div>
+          </div>
+        </div>
+
+        <!-- Generación 3 -->
+        <div class="gen-item">
+          <div class="gen-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="14" y="14" width="20" height="20" rx="2" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="18" y1="14" x2="18" y2="8" stroke="#7B1034" stroke-width="2"/>
+              <line x1="24" y1="14" x2="24" y2="8" stroke="#7B1034" stroke-width="2"/>
+              <line x1="30" y1="14" x2="30" y2="8" stroke="#7B1034" stroke-width="2"/>
+              <line x1="18" y1="34" x2="18" y2="40" stroke="#7B1034" stroke-width="2"/>
+              <line x1="24" y1="34" x2="24" y2="40" stroke="#7B1034" stroke-width="2"/>
+              <line x1="30" y1="34" x2="30" y2="40" stroke="#7B1034" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="gen-card">
+            <span class="gen-title">3.ª Generación — Circuitos integrados</span>
+            <span class="gen-years">Aprox. 1964 – 1971 · Ejemplo: IBM System/360</span>
+            <p>Jack Kilby y Robert Noyce desarrollaron el <strong>circuito integrado</strong>: cientos de transistores grabados sobre una sola placa de silicio (un "chip"). Esto disparó la miniaturización y la velocidad de proceso, y permitió que las computadoras ejecutaran varios programas de forma simultánea gracias a los primeros <strong>sistemas operativos</strong>.</p>
+            <div class="gen-analogy"><strong>Analogía:</strong> es como pasar de tener cientos de casas dispersas por una ciudad a construir un edificio de departamentos: la misma cantidad de "habitantes" (transistores), pero ocupando un terreno muchísimo más pequeño y mejor conectado entre sí.</div>
+          </div>
+        </div>
+
+        <!-- Generación 4 -->
+        <div class="gen-item">
+          <div class="gen-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="15" y="15" width="18" height="18" rx="1.5" stroke="#7B1034" stroke-width="2.2"/>
+              <rect x="21" y="21" width="6" height="6" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="19" y1="15" x2="19" y2="9" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="24" y1="15" x2="24" y2="9" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="29" y1="15" x2="29" y2="9" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="19" y1="33" x2="19" y2="39" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="24" y1="33" x2="24" y2="39" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="29" y1="33" x2="29" y2="39" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="15" y1="19" x2="9" y2="19" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="15" y1="24" x2="9" y2="24" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="15" y1="29" x2="9" y2="29" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="33" y1="19" x2="39" y2="19" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="33" y1="24" x2="39" y2="24" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="33" y1="29" x2="39" y2="29" stroke="#7B1034" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div class="gen-card">
+            <span class="gen-title">4.ª Generación — Microprocesadores</span>
+            <span class="gen-years">Desde 1971 · Ejemplo: Intel 4004 (1971), Apple II (1977), IBM PC (1981)</span>
+            <p>Toda la unidad central de proceso (CPU) se redujo a <strong>un solo chip</strong>: el microprocesador. El Intel 4004 (1971) fue el primero comercial. Esta miniaturización extrema hizo posible la <strong>computadora personal</strong>: máquinas pensadas para un solo usuario, en un escritorio o incluso en las piernas. Aparecen el mouse, las interfaces gráficas y, más adelante, las laptops y los teléfonos inteligentes.</p>
+            <div class="gen-analogy"><strong>Analogía:</strong> es el salto de tener una fábrica entera dedicada a "pensar", a llevar ese mismo cerebro dentro de la mochila. El microprocesador es, literalmente, un cerebro de silicio del tamaño de una uña.</div>
+          </div>
+        </div>
+
+        <!-- Generación 5 -->
+        <div class="gen-item">
+          <div class="gen-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="3" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="34" cy="14" r="3" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="24" cy="24" r="3.5" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="14" cy="34" r="3" stroke="#7B1034" stroke-width="2"/>
+              <circle cx="34" cy="34" r="3" stroke="#7B1034" stroke-width="2"/>
+              <line x1="16.5" y1="16" x2="21.5" y2="22" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="31.5" y1="16" x2="26.5" y2="22" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="16.5" y1="32" x2="21.5" y2="26" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="31.5" y1="32" x2="26.5" y2="26" stroke="#7B1034" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <div class="gen-card">
+            <span class="gen-title">5.ª Generación — Inteligencia artificial y computación avanzada</span>
+            <span class="gen-years">Actualidad y futuro cercano</span>
+            <p>La generación que estamos viviendo se caracteriza por sistemas capaces de <strong>procesar lenguaje natural, reconocer patrones y "aprender"</strong> a partir de datos (inteligencia artificial y redes neuronales), por el procesamiento en paralelo con múltiples núcleos, y por desarrollos emergentes como la <strong>computación cuántica</strong>. Es, también, la era de los dispositivos conectados entre sí (Internet de las Cosas).</p>
+            <div class="gen-analogy"><strong>Analogía:</strong> si las generaciones anteriores nos dieron un cerebro cada vez más pequeño y rápido, esta generación le está enseñando a ese cerebro a razonar por su cuenta, casi como pasar de una calculadora a un asistente que entiende lo que le pides.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="mascot-tip">
+      <img src="imagen2.png" alt="Mascota Mixtle">
+      <div class="mascot-text">
+        <span class="mascot-label">Dato curioso</span>
+        <p>El ENIAC (1.ª generación) usaba cerca de <strong>18,000 bulbos</strong>. En promedio, se quemaba uno cada dos días, así que un equipo de técnicos recorría el salón constantemente reemplazándolos, como quien cambia focos fundidos en una casa gigantesca que nunca deja de encenderse.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ TABLA COMPARATIVA ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Comparativo rápido</h2>
+      <div class="compare-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Generación</th>
+              <th>Tecnología</th>
+              <th>Periodo</th>
+              <th>Ejemplo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1.ª</td><td>Bulbos (tubos de vacío)</td><td>1940 – 1956</td><td>ENIAC</td></tr>
+            <tr><td>2.ª</td><td>Transistores</td><td>1956 – 1963</td><td>IBM 1401</td></tr>
+            <tr><td>3.ª</td><td>Circuitos integrados</td><td>1964 – 1971</td><td>IBM System/360</td></tr>
+            <tr><td>4.ª</td><td>Microprocesadores</td><td>Desde 1971</td><td>IBM PC, Apple II</td></tr>
+            <tr><td>5.ª</td><td>Inteligencia artificial y cómputo avanzado</td><td>Actualidad</td><td>Asistentes de IA, cómputo cuántico</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════ ACTIVIDAD DE CLASE ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Actividad de la clase</h2>
+      <div class="example-block">
+        <div class="example-header">Reflexión guiada: mi celular frente al ENIAC</div>
+        <div class="example-body">
+          <div class="example-statement">En parejas o de forma individual, completa los siguientes pasos y prepárate para compartir tu conclusión con el grupo.</div>
+          <ol class="step-list">
+            <li>
+              <span class="step-n">1</span>
+              <span class="step-content">Investiga un dato numérico del ENIAC (peso, tamaño, cantidad de bulbos o consumo eléctrico) y uno equivalente de tu teléfono celular actual.</span>
+            </li>
+            <li>
+              <span class="step-n">2</span>
+              <span class="step-content">Escribe una comparación breve (2 a 3 líneas) señalando qué generación representa cada dispositivo.</span>
+            </li>
+            <li>
+              <span class="step-n">3</span>
+              <span class="step-content">Propón tu propia analogía —distinta a las de esta guía— para explicar el salto entre los bulbos y el microprocesador.</span>
+            </li>
+            <li>
+              <span class="step-n">4</span>
+              <span class="step-content">Comparte tu analogía con el grupo al cierre de la sesión.</span>
+            </li>
+          </ol>
+          <div class="callout note"><p>Este ejercicio será la base para la ficha técnica de hardware que entregarás más adelante en la Unidad 1.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ CONCLUSIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Conclusión</h2>
+      <p>En poco más de ochenta años, la computadora pasó de ser una máquina del tamaño de un salón que solo unas cuantas instituciones podían costear, a convertirse en un dispositivo que cabe en un bolsillo y que casi cualquier persona utiliza a diario. Cada generación —bulbos, transistores, circuitos integrados, microprocesadores e inteligencia artificial— no eliminó a la anterior de la nada: la mejoró, resolviendo sus limitaciones de tamaño, calor, velocidad o consumo de energía.</p>
+      <p>Tener clara esta línea de tiempo te da el contexto necesario para las siguientes clases, en las que profundizaremos en cómo está construida una computadora por dentro: la Arquitectura de Von Neumann, el CPU y la jerarquía de memorias que hacen posible todo lo que hoy damos por hecho.</p>
+    </section>
+
+    <!-- ══════════════ REFERENCIAS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Referencias bibliográficas</h2>
+      <p class="text-sm">Stallings, W. (2025). <em>Organización y arquitectura de computadoras</em> (11.ª ed.). Pearson Educación.</p>
+      <p class="text-sm">Tanenbaum, A. S., y Austin, T. (2013). <em>Organización de computadoras: un enfoque estructurado</em> (6.ª ed.). Pearson Educación.</p>
+      <p class="text-sm">Norton, P. (2006). <em>Introducción a la computación</em> (6.ª ed.). McGraw-Hill.</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Unidad 1 · Tema 1.1</span>
+  </footer>
+
+</body>
+</html>
