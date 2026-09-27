@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 1.2 — Arquitectura de Von Neumann y componentes del CPU</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .mascot-tip {
+    display: flex; align-items: center; gap: 1.4rem;
+    background: var(--guinda-light); border: 1px solid #D8A8BA;
+    border-radius: var(--radius-lg); padding: 1.3rem 1.6rem; margin: 1.75rem 0;
+  }
+  .mascot-tip img { width: 82px; height: auto; flex-shrink: 0; }
+  .mascot-tip .mascot-label {
+    font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--guinda); font-weight: 700; display: block; margin-bottom: .3rem;
+  }
+  .mascot-tip p { font-size: .95rem; margin-bottom: 0; }
+
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid; grid-template-columns: 190px 1fr; gap: .5rem;
+    padding: .5rem 0; border-bottom: 1px dashed var(--border); font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600;
+  }
+  @media (max-width: 560px) { .info-list li { grid-template-columns: 1fr; gap: .15rem; } }
+
+  /* Tarjetas de componentes del CPU */
+  .part-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0;
+  }
+  @media (max-width: 760px) { .part-grid { grid-template-columns: 1fr; } }
+  .part-card {
+    background: var(--off-white); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.2rem 1.3rem; box-shadow: var(--shadow-sm);
+  }
+  .part-card .part-icon {
+    width: 46px; height: 46px; border-radius: 50%; background: var(--white);
+    border: 2px solid var(--guinda); display: flex; align-items: center; justify-content: center;
+    margin-bottom: .8rem;
+  }
+  .part-card .part-icon svg { width: 24px; height: 24px; }
+  .part-card .part-title { font-family: var(--font-ui); font-weight: 700; color: var(--guinda); font-size: .95rem; margin-bottom: .1rem; display: block; }
+  .part-card .part-role { font-family: var(--font-ui); font-size: .74rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: .6rem; }
+  .part-card p { font-size: .9rem; margin-bottom: 0; }
+
+  /* Diagrama del ciclo de instrucción */
+  .cycle-diagram { margin: 1.75rem 0; text-align: center; }
+  .cycle-diagram svg { width: 100%; max-width: 640px; height: auto; }
+
+  /* Caja de actividad */
+  .tool-box {
+    border: 1px solid var(--border-strong); border-radius: var(--radius-lg);
+    padding: 1rem 1.3rem; margin-bottom: 1rem; background: var(--surface);
+    display: flex; gap: 1rem; align-items: flex-start;
+  }
+  .tool-box .tool-icon {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--guinda);
+    color: var(--white); display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-ui); font-weight: 700; font-size: .85rem; flex-shrink: 0;
+  }
+  .tool-box .tool-name { font-family: var(--font-ui); font-weight: 700; color: var(--guinda-dark); font-size: .92rem; display: block; margin-bottom: .25rem; }
+  .tool-box p { font-size: .9rem; margin-bottom: 0; }
+  .link-placeholder {
+    display: inline-block; margin-top: .5rem; padding: .35rem .8rem;
+    border: 1.5px dashed var(--guinda-rule); border-radius: 999px;
+    font-family: var(--font-mono); font-size: .78rem; color: var(--guinda-mid); background: var(--white);
+  }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap"><img src="imagen1.png" alt="Logo IEDEP"></div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Guía de clase — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Unidad 1 · Arquitectura y Hardware de Computadoras</span>
+    <h1>Arquitectura de Von Neumann y componentes del CPU</h1>
+    <span class="class-subtitle">Abrimos el "cerebro" de la computadora: cómo la ALU, la Unidad de Control y los registros trabajan juntos para convertir instrucciones en acciones.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Fecha<span>Domingo 27 de septiembre de 2026</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA DE LA CLASE ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha de la clase</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Unidad</span><span>1. Arquitectura y Hardware de Computadoras</span></li>
+          <li><span class="info-label">Tema</span><span>1.2 Arquitectura de Von Neumann y componentes del CPU (ALU, UC, Registros)</span></li>
+          <li><span class="info-label">Fecha</span><span>Domingo 27 de septiembre de 2026</span></li>
+        </ul>
+      </div>
+
+      <span class="section-label">Competencias a desarrollar</span>
+      <div class="competency-card">
+        <span class="comp-num">01</span>
+        <span class="comp-text"><strong>Competencia de unidad:</strong> Usar los componentes de la Arquitectura de Von Neumann (CPU, Memoria, E/S) y los sistemas de numeración, tomando como base el análisis de su funcionamiento electrónico y lógico, con el propósito de comprender cómo los datos físicos se transforman en información procesable.</span>
+      </div>
+      <div class="competency-card">
+        <span class="comp-num">02</span>
+        <span class="comp-text"><strong>Competencia del tema:</strong> Identificar los componentes de la Arquitectura de Von Neumann y su ciclo de instrucción, distinguiendo la función de la ALU, la Unidad de Control y los registros, para explicar cómo el CPU ejecuta una instrucción de principio a fin.</span>
+      </div>
+    </section>
+
+    <!-- ══════════════ INTRODUCCIÓN / PUENTE CON LA CLASE ANTERIOR ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">De la historia al interior de la máquina</h2>
+      <p>La clase pasada recorrimos las cinco generaciones de las computadoras: bulbos, transistores, circuitos integrados, microprocesadores e inteligencia artificial. Sin importar la generación, casi todas las computadoras que usamos hoy —tu laptop, tu celular, la consola de videojuegos— siguen un mismo plano de construcción propuesto en 1945 por el matemático <strong>John von Neumann</strong>: la <strong>Arquitectura de Von Neumann</strong>.</p>
+      <p>Su idea central fue simple pero revolucionaria: guardar <strong>datos e instrucciones en la misma memoria</strong>, en lugar de construir una máquina distinta para cada tarea. Esa decisión es la razón por la que hoy puedes usar el mismo dispositivo para escribir un documento, ver un video o hacer una videollamada: solo cambias el programa (las instrucciones), no el hardware.</p>
+
+      <div class="concept-box">
+        <span class="concept-title">Analogía: la cocina del restaurante</span>
+        <p>Imagina la CPU como la cocina de un restaurante. La <strong>Unidad de Control (UC)</strong> es el jefe de cocina: lee la comanda (la instrucción) y decide qué hay que hacer y en qué orden. La <strong>ALU (Unidad Aritmético-Lógica)</strong> es el cocinero que corta, mezcla y calcula las cantidades: el que de verdad "hace las cuentas" del platillo. Los <strong>registros</strong> son la pequeña mesa de trabajo justo frente al cocinero, donde deja los ingredientes que está usando en ese momento —muy rápida de alcanzar, pero con espacio para poquísimas cosas—. La <strong>memoria RAM</strong> es la despensa de la cocina: guarda mucho más, pero hay que caminar hasta ella. Y el <strong>bus del sistema</strong> es la barra y los pasillos que conectan todas las estaciones entre sí.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════ COMPONENTES DEL CPU ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Los tres protagonistas dentro del CPU</h2>
+      <div class="part-grid">
+        <div class="part-card">
+          <div class="part-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="14" width="28" height="20" rx="2" stroke="#7B1034" stroke-width="2.2"/>
+              <line x1="10" y1="20" x2="38" y2="20" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="15" y1="26" x2="27" y2="26" stroke="#7B1034" stroke-width="1.6"/>
+              <line x1="15" y1="30" x2="23" y2="30" stroke="#7B1034" stroke-width="1.6"/>
+            </svg>
+          </div>
+          <span class="part-title">Unidad de Control (UC)</span>
+          <span class="part-role">El jefe de cocina</span>
+          <p>Lee cada instrucción de la memoria, la interpreta y coordina al resto de los componentes: decide qué hacer, en qué momento y con qué datos, sin ejecutar ella misma los cálculos.</p>
+        </div>
+        <div class="part-card">
+          <div class="part-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 24 L18 24 L21 16 L27 32 L30 24 L36 24" stroke="#7B1034" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <span class="part-title">ALU — Unidad Aritmético-Lógica</span>
+          <span class="part-role">El cocinero que calcula</span>
+          <p>Ejecuta las operaciones aritméticas (sumar, restar, multiplicar) y lógicas (comparar, evaluar verdadero o falso) que la Unidad de Control le indica.</p>
+        </div>
+        <div class="part-card">
+          <div class="part-icon">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="12" y="16" width="7" height="7" stroke="#7B1034" stroke-width="2"/>
+              <rect x="20.5" y="16" width="7" height="7" stroke="#7B1034" stroke-width="2"/>
+              <rect x="29" y="16" width="7" height="7" stroke="#7B1034" stroke-width="2"/>
+              <rect x="12" y="25" width="7" height="7" stroke="#7B1034" stroke-width="2"/>
+              <rect x="20.5" y="25" width="7" height="7" stroke="#7B1034" stroke-width="2"/>
+            </svg>
+          </div>
+          <span class="part-title">Registros</span>
+          <span class="part-role">La mesa de trabajo</span>
+          <p>Pequeños espacios de memoria dentro del propio CPU: guardan temporalmente los datos y direcciones que se están usando en ese instante. Son el tipo de memoria más rápida que existe.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ CICLO DE INSTRUCCIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">El ciclo de instrucción: fetch, decode, execute</h2>
+      <p>Estos tres componentes se repiten miles de millones de veces por segundo en un ciclo de cuatro pasos:</p>
+
+      <div class="cycle-diagram">
+        <svg viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- Memoria -->
+          <rect x="20" y="110" width="120" height="80" rx="6" fill="#FAFAFA" stroke="#7B1034" stroke-width="2"/>
+          <text x="80" y="145" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#490b58">Memoria</text>
+          <text x="80" y="163" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#5C4850">Instrucciones</text>
+          <text x="80" y="176" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#5C4850">y datos</text>
+
+          <!-- UC -->
+          <rect x="250" y="20" width="140" height="70" rx="6" fill="#F5E8EE" stroke="#7B1034" stroke-width="2"/>
+          <text x="320" y="50" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#490b58">Unidad de</text>
+          <text x="320" y="66" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#490b58">Control (UC)</text>
+
+          <!-- ALU -->
+          <rect x="250" y="215" width="140" height="70" rx="6" fill="#F5E8EE" stroke="#7B1034" stroke-width="2"/>
+          <text x="320" y="245" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#490b58">ALU</text>
+          <text x="320" y="263" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#5C4850">Aritmética y lógica</text>
+
+          <!-- Registros -->
+          <rect x="480" y="110" width="140" height="80" rx="6" fill="#FAFAFA" stroke="#7B1034" stroke-width="2"/>
+          <text x="550" y="145" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#490b58">Registros</text>
+          <text x="550" y="163" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#5C4850">Datos en uso</text>
+
+          <!-- Flechas del ciclo -->
+          <path d="M140 135 L245 60" stroke="#C85070" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+          <text x="175" y="90" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#7B1034">1. Fetch</text>
+
+          <path d="M320 90 L320 212" stroke="#C85070" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+          <text x="330" y="155" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#7B1034">2. Decode</text>
+
+          <path d="M390 250 L480 155" stroke="#C85070" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+          <text x="410" y="225" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#7B1034">3. Execute</text>
+
+          <path d="M480 175 Q300 300 140 175" stroke="#C85070" stroke-width="2" fill="none" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+          <text x="300" y="292" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#7B1034">4. Store / siguiente instrucción</text>
+
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#C85070"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <ol class="step-list">
+        <li><span class="step-n">1</span><span class="step-content"><strong>Fetch (buscar):</strong> la Unidad de Control va a la memoria y trae la siguiente instrucción, usando un registro especial llamado <em>contador de programa</em> para saber cuál sigue.</span></li>
+        <li><span class="step-n">2</span><span class="step-content"><strong>Decode (decodificar):</strong> la UC interpreta la instrucción: identifica qué operación se pide y qué datos necesita.</span></li>
+        <li><span class="step-n">3</span><span class="step-content"><strong>Execute (ejecutar):</strong> la ALU realiza la operación aritmética o lógica indicada, usando los datos que están en los registros.</span></li>
+        <li><span class="step-n">4</span><span class="step-content"><strong>Store (almacenar):</strong> el resultado se guarda en un registro o de vuelta en memoria, y el ciclo comienza otra vez con la siguiente instrucción.</span></li>
+      </ol>
+    </section>
+
+    <div class="mascot-tip">
+      <img src="imagen2.png" alt="Mascota Mixtle">
+      <div>
+        <span class="mascot-label">Dato curioso</span>
+        <p>Este ciclo se repite a una velocidad medida en <strong>gigahercios (GHz)</strong>: un procesador de 3 GHz puede completar alrededor de 3,000 millones de ciclos por segundo. Es como si el jefe de cocina y el cocinero de nuestra analogía prepararan miles de millones de platillos diminutos... en un solo segundo.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ ACTIVIDAD DINÁMICA E INTEGRADORA ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Actividad dinámica e integradora</h2>
+      <div class="example-block">
+        <div class="example-header">Reto en equipos: "Arma, explica y comprueba tu CPU"</div>
+        <div class="example-body">
+          <div class="example-statement">Trabajo en equipos de 3 a 4 integrantes. Duración total: 25 a 30 minutos. La actividad conecta lo visto hoy (UC, ALU, registros y ciclo de instrucción) con la clase anterior (generaciones de las computadoras) y utiliza tres herramientas digitales gratuitas.</div>
+
+          <div class="tool-box">
+            <div class="tool-icon">1</div>
+            <div>
+              <span class="tool-name">Canva — Diagrama colaborativo (10 min)</span>
+              <p>Cada equipo entra a una plantilla compartida de <strong>Canva</strong> y construye, de forma colaborativa y en tiempo real, el diagrama de la Arquitectura de Von Neumann: cajas para UC, ALU, Registros, Memoria y Entrada/Salida, unidas por flechas que muestren el ciclo fetch → decode → execute → store. Deben etiquetar cada flecha con el paso correspondiente.</p>
+              <span class="link-placeholder">Inserta aquí el enlace a tu plantilla de Canva compartida</span>
+            </div>
+          </div>
+
+          <div class="tool-box">
+            <div class="tool-icon">2</div>
+            <div>
+              <span class="tool-name">IA generativa — Analogía original (8 min)</span>
+              <p>Con una herramienta de inteligencia artificial generativa (ChatGPT, Gemini, Copilot o similar), cada equipo redacta un prompt para obtener una analogía distinta a la de "la cocina" que explique el ciclo fetch-decode-execute. Después la revisan de forma crítica: ¿es técnicamente correcta? ¿le falta o le sobra algo? Y la ajustan si es necesario antes de presentarla.</p>
+            </div>
+          </div>
+
+          <div class="tool-box">
+            <div class="tool-icon">3</div>
+            <div>
+              <span class="tool-name">Google Forms — Autoevaluación de cierre (5 min)</span>
+              <p>Al terminar las presentaciones relámpago (2 minutos por equipo, mostrando su diagrama de Canva y su analogía), cada estudiante responde de forma individual un formulario breve de 4 preguntas para verificar su comprensión del tema y dejar una duda o comentario para la siguiente clase.</p>
+              <span class="link-placeholder">Inserta aquí el enlace a tu Google Form de autoevaluación</span>
+            </div>
+          </div>
+
+          <div class="callout note">
+            <p><strong>Sugerencia de cierre:</strong> proyecta uno o dos diagramas de Canva frente al grupo y pide a los propios estudiantes que señalen, en voz alta, en qué parte del diagrama ocurre cada paso del ciclo de instrucción. Es una forma rápida de detectar confusiones antes de pasar al siguiente tema.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ CONCLUSIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Conclusión</h2>
+      <p>Sin importar si una computadora es de la primera o de la quinta generación, en su interior sigue ocurriendo la misma coreografía: la Unidad de Control dirige, la ALU calcula y los registros sostienen el dato justo en el momento en que se necesita. Entender este ciclo de instrucción es la base para las próximas clases, en las que veremos cómo la memoria RAM, la caché y el almacenamiento secundario se organizan para que esta "cocina" nunca se quede sin ingredientes a la mano.</p>
+    </section>
+
+    <!-- ══════════════ REFERENCIAS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Referencias bibliográficas</h2>
+      <p class="text-sm">Stallings, W. (2025). <em>Organización y arquitectura de computadoras</em> (11.ª ed.). Pearson Educación.</p>
+      <p class="text-sm">Von Neumann, J. (1945). <em>First Draft of a Report on the EDVAC</em>. University of Pennsylvania, Moore School of Electrical Engineering.</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Unidad 1 · Tema 1.2</span>
+  </footer>
+
+</body>
+</html>
