@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 1.3 — Jerarquía de memorias (RAM, caché y almacenamiento secundario)</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .mascot-tip {
+    display: flex; align-items: center; gap: 1.4rem;
+    background: var(--guinda-light); border: 1px solid #D8A8BA;
+    border-radius: var(--radius-lg); padding: 1.3rem 1.6rem; margin: 1.75rem 0;
+  }
+  .mascot-tip img { width: 82px; height: auto; flex-shrink: 0; }
+  .mascot-tip .mascot-label {
+    font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--guinda); font-weight: 700; display: block; margin-bottom: .3rem;
+  }
+  .mascot-tip p { font-size: .95rem; margin-bottom: 0; }
+
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid; grid-template-columns: 190px 1fr; gap: .5rem;
+    padding: .5rem 0; border-bottom: 1px dashed var(--border); font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600;
+  }
+  @media (max-width: 560px) { .info-list li { grid-template-columns: 1fr; gap: .15rem; } }
+
+  /* Ruta de la clase */
+  .route { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6rem; margin: 1.25rem 0 0; counter-reset: stop; }
+  @media (max-width: 760px) { .route { grid-template-columns: 1fr 1fr; } }
+  .route a {
+    display: block; text-decoration: none; text-align: center;
+    background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: .7rem .5rem; font-family: var(--font-ui); font-size: .78rem; font-weight: 600; color: var(--ink);
+    transition: border-color .15s, transform .15s;
+  }
+  .route a:hover { border-color: var(--guinda); transform: translateY(-2px); text-decoration: none; color: var(--guinda); }
+  .route a::before {
+    counter-increment: stop; content: counter(stop);
+    display: block; width: 24px; height: 24px; line-height: 24px; margin: 0 auto .35rem;
+    border-radius: 50%; background: var(--guinda); color: var(--white); font-size: .72rem; font-weight: 700;
+  }
+
+  /* Interactivos: contenedor */
+  .lab {
+    border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+    margin: 1.5rem 0; box-shadow: var(--shadow-sm); background: var(--off-white);
+  }
+  .lab-header {
+    background: var(--guinda); color: var(--white); padding: .7rem 1.4rem;
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; letter-spacing: .04em;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .lab-header .lab-tag { font-weight: 500; opacity: .75; text-transform: uppercase; font-size: .72rem; letter-spacing: .1em; }
+  .lab-body { padding: 1.3rem 1.5rem; }
+  .btn {
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; cursor: pointer;
+    background: var(--guinda); color: var(--white); border: 2px solid var(--guinda);
+    padding: .55rem 1.1rem; border-radius: var(--radius-md); transition: background .15s, transform .1s;
+  }
+  .btn:hover { background: var(--guinda-dark); }
+  .btn:active { transform: scale(.97); }
+  .btn.ghost { background: var(--white); color: var(--guinda); }
+  .btn.ghost:hover { background: var(--guinda-light); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, .pyr-btn:focus-visible, .speed-btn:focus-visible, .item-btn:focus-visible, .bin-btn:focus-visible {
+    outline: 3px solid var(--guinda-rule); outline-offset: 2px;
+  }
+
+  /* Pirámide */
+  .pyr-wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 760px) { .pyr-wrap { grid-template-columns: 1fr; } }
+  .pyr-stack { display: flex; flex-direction: column; align-items: center; gap: .45rem; position: relative; padding: 0 1.6rem; }
+  .pyr-btn {
+    cursor: pointer; border: 2px solid var(--guinda); border-radius: var(--radius-md);
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 700; padding: .85rem .5rem;
+    color: var(--white); text-align: center; transition: transform .15s, box-shadow .15s, filter .15s;
+  }
+  .pyr-btn small { display: block; font-weight: 500; font-size: .7rem; opacity: .85; margin-top: .1rem; }
+  .pyr-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .pyr-btn.active { outline: 3px solid var(--guinda-rule); outline-offset: 2px; filter: brightness(1.05); }
+  .pyr-btn[data-lvl="0"] { width: 38%; background: #490b58; }
+  .pyr-btn[data-lvl="1"] { width: 58%; background: #691f35; }
+  .pyr-btn[data-lvl="2"] { width: 79%; background: #96324C; }
+  .pyr-btn[data-lvl="3"] { width: 100%; background: #B0526C; }
+  .pyr-axis {
+    position: absolute; top: 0; bottom: 0; width: 1.4rem; display: flex; align-items: center; justify-content: center;
+  }
+  .pyr-axis span {
+    writing-mode: vertical-rl; transform: rotate(180deg); font-family: var(--font-ui);
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); white-space: nowrap;
+  }
+  .pyr-axis.left { left: 0; } .pyr-axis.right { right: 0; }
+  .detail-card {
+    background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1.1rem 1.3rem; min-height: 280px;
+  }
+  .detail-card h3 { font-family: var(--font-ui); font-size: 1.05rem; color: var(--guinda); margin-bottom: .2rem; }
+  .detail-card .detail-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); display: block; margin-bottom: .7rem; }
+  .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: .8rem 0; }
+  .spec {
+    background: var(--surface); border-radius: var(--radius-sm); padding: .45rem .7rem;
+    font-family: var(--font-ui); font-size: .78rem;
+  }
+  .spec b { display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); }
+  .detail-analogy {
+    background: var(--guinda-light); border: 1px solid #D8A8BA; border-radius: var(--radius-sm);
+    padding: .6rem .9rem; font-size: .9rem; margin-top: .6rem;
+  }
+  .detail-analogy strong { color: var(--guinda-dark); }
+
+  /* Escala de velocidad */
+  .speed-btns { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem; }
+  .speed-btn {
+    cursor: pointer; font-family: var(--font-ui); font-size: .8rem; font-weight: 600;
+    background: var(--white); color: var(--guinda); border: 2px solid var(--guinda);
+    padding: .45rem .9rem; border-radius: 999px; transition: background .15s;
+  }
+  .speed-btn:hover { background: var(--guinda-light); }
+  .speed-btn.active { background: var(--guinda); color: var(--white); }
+  .speed-track { background: var(--surface); border-radius: var(--radius-sm); height: 34px; overflow: hidden; border: 1px solid var(--border); }
+  .speed-fill {
+    height: 100%; width: 4%; background: linear-gradient(90deg, #C85070, #7B1034); border-radius: var(--radius-sm);
+    transition: width .9s cubic-bezier(.2,.8,.2,1);
+  }
+  .speed-out { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-top: 1rem; }
+  @media (max-width: 560px) { .speed-out { grid-template-columns: 1fr; } }
+  .speed-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .speed-box .sb-value, .speed-box .sb-note { display: block; }
+  .speed-box .sb-label { font-family: var(--font-ui); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); display: block; }
+  .speed-box .sb-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; color: var(--guinda); line-height: 1.2; }
+  .speed-box .sb-note { font-size: .82rem; color: var(--ink-secondary); }
+
+  /* Simulador de caché */
+  .sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media (max-width: 700px) { .sim-grid { grid-template-columns: 1fr; } }
+  .sim-req {
+    background: var(--white); border: 1px solid var(--border-strong); border-radius: var(--radius-md);
+    padding: 1rem 1.2rem; text-align: center;
+  }
+  .sim-req .req-label { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); display: block; }
+  .sim-req .req-block {
+    font-family: var(--font-mono); font-size: 2.4rem; font-weight: 700; color: var(--guinda);
+    display: inline-block; margin: .2rem 0 .5rem;
+  }
+  .sim-actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+  .sim-feedback { min-height: 3.2em; font-size: .92rem; margin-top: .8rem; font-weight: 600; }
+  .sim-feedback.ok { color: #1e6b3a; } .sim-feedback.bad { color: #a12b2b; }
+  .cache-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin: .6rem 0 1rem; }
+  .slot {
+    border: 2px dashed var(--border-strong); border-radius: var(--radius-md); height: 64px;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--guinda); background: var(--white);
+    transition: background .25s, border-color .25s;
+  }
+  .slot small { font-family: var(--font-ui); font-size: .58rem; font-weight: 600; color: var(--ink-muted); text-transform: uppercase; letter-spacing: .06em; }
+  .slot.filled { border-style: solid; border-color: var(--guinda); }
+  .slot.flash-hit { background: #dff3e6; border-color: #1e6b3a; }
+  .slot.flash-new { background: #fbe3e3; border-color: #a12b2b; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .stat { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .5rem; text-align: center; }
+  .stat b { display: block; font-family: var(--font-display); font-size: 1.4rem; color: var(--guinda); }
+  .stat span { font-family: var(--font-ui); font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); }
+  .hist { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .8rem; min-height: 28px; }
+  .hist span {
+    font-family: var(--font-mono); font-size: .78rem; font-weight: 700; padding: .15rem .45rem; border-radius: 4px; color: var(--white);
+  }
+  .hist .h { background: #1e6b3a; } .hist .m { background: #a12b2b; }
+
+  /* Clasificación */
+  .cls-items { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .item-btn {
+    cursor: pointer; font-family: var(--font-body); font-size: .85rem; text-align: left;
+    background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md);
+    padding: .5rem .8rem; max-width: 100%; transition: border-color .15s, background .15s;
+  }
+  .item-btn:hover { border-color: var(--guinda); }
+  .item-btn.selected { border-color: var(--guinda); background: var(--guinda-light); box-shadow: 0 0 0 3px rgba(200,80,112,.25); }
+  .item-btn.done { opacity: .5; cursor: default; border-color: #1e6b3a; background: #e8f5ec; }
+  .cls-bins { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; }
+  @media (max-width: 700px) { .cls-bins { grid-template-columns: 1fr 1fr; } }
+  .bin-btn {
+    cursor: pointer; background: var(--surface); border: 2px dashed var(--guinda-rule); border-radius: var(--radius-md);
+    padding: .8rem .5rem; font-family: var(--font-ui); font-size: .8rem; font-weight: 700; color: var(--guinda);
+    min-height: 92px; text-align: center; transition: background .15s;
+  }
+  .bin-btn:hover { background: var(--guinda-light); }
+  .bin-btn .bin-count { display: block; font-weight: 500; font-size: .7rem; color: var(--ink-muted); margin-top: .25rem; }
+  .bin-btn.shake { animation: shake .35s; border-color: #a12b2b; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .cls-msg { margin-top: .9rem; font-weight: 600; font-size: .92rem; min-height: 1.5em; }
+
+  /* Observa tu equipo */
+  .obs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .obs-grid { grid-template-columns: 1fr; } }
+  .field label { display: block; font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600; margin-bottom: .25rem; }
+  .field input, .field select {
+    width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink);
+  }
+  .field input:focus, .field select:focus { outline: 2px solid var(--guinda-rule); border-color: var(--guinda); }
+  .meter { margin: .6rem 0; }
+  .meter .m-top { display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: .8rem; font-weight: 600; margin-bottom: .25rem; }
+  .meter .m-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 18px; overflow: hidden; }
+  .meter .m-fill { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .6s ease; }
+  .summary-box {
+    width: 100%; min-height: 110px; font-family: var(--font-mono); font-size: .8rem; padding: .7rem .9rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); resize: vertical;
+  }
+  .os-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .6rem; }
+
+  /* Quiz */
+  .q { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; margin-bottom: .9rem; }
+  .q .q-text { font-weight: 600; margin-bottom: .5rem; font-size: .96rem; }
+  .q label {
+    display: block; padding: .4rem .7rem; margin: .25rem 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; font-size: .92rem; transition: background .15s;
+  }
+  .q label:hover { background: var(--guinda-light); }
+  .q input { margin-right: .5rem; accent-color: #490b58; }
+  .q.right label.chosen { background: #e8f5ec; border-color: #1e6b3a; }
+  .q.wrong label.chosen { background: #fbe9e9; border-color: #a12b2b; }
+  .q .q-expl { display: none; font-size: .86rem; color: var(--ink-secondary); margin-top: .5rem; padding-left: .7rem; border-left: 3px solid var(--guinda-rule); }
+  .q.shown .q-expl { display: block; }
+  .quiz-result { font-family: var(--font-display); font-size: 1.3rem; color: var(--guinda); margin-top: .8rem; font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .speed-fill, .meter .m-fill, .pyr-btn, .route a { transition: none; }
+    .bin-btn.shake { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap"><img src="imagen1.png" alt="Logo IEDEP"></div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Guía de clase interactiva — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Unidad 1 · Arquitectura y Hardware de Computadoras</span>
+    <h1>Jerarquía de memorias: RAM, caché y almacenamiento secundario</h1>
+    <span class="class-subtitle">¿Por qué una computadora tiene varios tipos de memoria en lugar de uno solo? Hoy lo descubrirás explorando, midiendo y jugando con cada nivel.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Fecha<span>Domingo 11 de octubre de 2026</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha de la clase</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Unidad</span><span>1. Arquitectura y Hardware de Computadoras</span></li>
+          <li><span class="info-label">Tema</span><span>1.3 Jerarquía de memorias (RAM, Caché, Almacenamiento secundario)</span></li>
+          <li><span class="info-label">Fecha</span><span>Domingo 11 de octubre de 2026</span></li>
+        </ul>
+      </div>
+
+      <span class="section-label">Competencias a desarrollar</span>
+      <div class="competency-card">
+        <span class="comp-num">01</span>
+        <span class="comp-text"><strong>Competencia de unidad:</strong> Usar los componentes de la Arquitectura de Von Neumann (CPU, Memoria, E/S) y los sistemas de numeración, tomando como base el análisis de su funcionamiento electrónico y lógico, con el propósito de comprender cómo los datos físicos se transforman en información procesable.</span>
+      </div>
+      <div class="competency-card">
+        <span class="comp-num">02</span>
+        <span class="comp-text"><strong>Competencia del tema:</strong> Distinguir los niveles de la jerarquía de memorias (registros, caché, RAM y almacenamiento secundario) comparando su velocidad, capacidad, costo y volatilidad, para explicar por qué una computadora combina distintos tipos de memoria.</span>
+      </div>
+
+      <span class="section-label" style="margin-top:1.5rem;">Ruta de la clase (haz clic para ir a cada estación)</span>
+      <nav class="route" aria-label="Ruta de la clase">
+        <a href="#e1">Explora la pirámide</a>
+        <a href="#e2">Mide la velocidad</a>
+        <a href="#e3">Juega con la caché</a>
+        <a href="#e4">Clasifica y comprueba</a>
+        <a href="#e5">Observa tu equipo</a>
+      </nav>
+    </section>
+
+    <!-- ══════════════ INTRO ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">El problema: rápido, grande y barato... no se puede todo</h2>
+      <p>La clase pasada vimos que la ALU y la Unidad de Control trabajan sin descanso, repitiendo el ciclo fetch-decode-execute miles de millones de veces por segundo. Pero hay un detalle: <strong>necesitan datos al instante</strong>. Si cada vez tuvieran que esperar a que el disco duro les entregara información, el procesador pasaría casi todo el tiempo sin hacer nada.</p>
+      <p>Lo ideal sería una memoria que fuera, al mismo tiempo, muy rápida, de gran capacidad y barata. Lamentablemente, esa memoria no existe: <strong>la que es más rápida es cara y pequeña; la que es grande y barata es lenta</strong>. La solución de los ingenieros fue combinar varias en una jerarquía, de modo que cada nivel complementa al anterior.</p>
+
+      <div class="concept-box">
+        <span class="concept-title">Analogía: preparas un examen en tu cuarto</span>
+        <p>Imagina que estudias para un examen. Lo que traes <strong>en la cabeza</strong> lo usas al instante, pero te caben pocas cosas (son los <strong>registros</strong>). Tu <strong>libreta de apuntes sobre el escritorio</strong> está a un movimiento de mano (la <strong>caché</strong>). El <strong>librero de tu cuarto</strong> guarda mucho más, pero tienes que levantarte a buscar (la <strong>RAM</strong>). Y la <strong>biblioteca de la ciudad</strong> contiene todo lo que podrías necesitar, pero ir y volver toma una tarde entera (el <strong>almacenamiento secundario</strong>). Nadie estudia yendo a la biblioteca por cada dato: se trae lo importante al librero, y lo más usado al escritorio. Las computadoras hacen exactamente lo mismo.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 1: PIRÁMIDE ══════════════ -->
+    <section class="section" id="e1">
+      <h2 class="section-title">Estación 1 · Explora la pirámide de memorias</h2>
+      <p>Haz clic en cada nivel de la pirámide para ver sus características. Observa cómo, mientras subes, la memoria se vuelve más rápida, pero también más cara y más pequeña.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Pirámide interactiva de la jerarquía de memorias</span><span class="lab-tag">Haz clic en un nivel</span></div>
+        <div class="lab-body">
+          <div class="pyr-wrap">
+            <div class="pyr-stack" role="group" aria-label="Niveles de memoria">
+              <div class="pyr-axis left"><span>Más rápida y más cara por byte</span></div>
+              <div class="pyr-axis right"><span>Más capacidad y más barata por byte</span></div>
+              <button class="pyr-btn" data-lvl="0" type="button">Registros<small>dentro del CPU</small></button>
+              <button class="pyr-btn" data-lvl="1" type="button">Memoria caché<small>L1 · L2 · L3</small></button>
+              <button class="pyr-btn" data-lvl="2" type="button">Memoria RAM<small>memoria principal</small></button>
+              <button class="pyr-btn" data-lvl="3" type="button">Almacenamiento secundario<small>SSD · HDD</small></button>
+            </div>
+            <div class="detail-card" id="pyrDetail" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 2: VELOCIDAD ══════════════ -->
+    <section class="section" id="e2">
+      <h2 class="section-title">Estación 2 · Mide la velocidad: si un nanosegundo durara un segundo</h2>
+      <p>Los tiempos de acceso de una computadora son tan pequeños que cuesta imaginarlos. Para entenderlos, vamos a <strong>escalarlos a tiempo humano</strong>: imagina que <strong>1 nanosegundo (ns) durara 1 segundo</strong>. Elige un nivel y mira cuánto tardaría el procesador en conseguir un dato.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Escala de tiempo humano</span><span class="lab-tag">Valores aproximados</span></div>
+        <div class="lab-body">
+          <div class="speed-btns" id="speedBtns" role="group" aria-label="Nivel de memoria"></div>
+          <div class="speed-track" aria-hidden="true"><div class="speed-fill" id="speedFill"></div></div>
+          <div class="speed-out" aria-live="polite">
+            <div class="speed-box"><span class="sb-label">Tiempo real de acceso (aprox.)</span><span class="sb-value" id="sbReal">—</span><span class="sb-note" id="sbRealNote">Elige un nivel.</span></div>
+            <div class="speed-box"><span class="sb-label">Si 1 ns durara 1 segundo</span><span class="sb-value" id="sbHuman">—</span><span class="sb-note" id="sbHumanNote">Aquí verás el equivalente humano.</span></div>
+          </div>
+          <p class="text-muted" style="margin-top:.9rem;">La barra usa escala logarítmica: cada tramo equivale a multiplicar el tiempo por 10. Los valores son órdenes de magnitud típicos y varían según el equipo.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="mascot-tip">
+      <img src="imagen2.png" alt="Mascota Mixtle">
+      <div>
+        <span class="mascot-label">Dato curioso</span>
+        <p>Un disco duro mecánico (HDD) debe girar un plato metálico y mover una pequeña aguja hasta la posición correcta antes de leer. Es como pedirle a un bibliotecario que traiga el libro caminando, mientras que la RAM y la caché son datos que ya tienes sobre la mesa. Por eso cambiar un HDD por un SSD hace que un equipo "viejo" se sienta renovado.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ ESTACIÓN 3: CACHÉ ══════════════ -->
+    <section class="section" id="e3">
+      <h2 class="section-title">Estación 3 · Juega con la caché: ¿acierto o fallo?</h2>
+      <p>La caché guarda copias de los datos que el CPU usó recientemente, confiando en el <strong>principio de localidad</strong>: lo que se usó hace poco tiene muchas probabilidades de usarse otra vez. Cuando el dato está en la caché ocurre un <strong>acierto (hit)</strong>; cuando no está, un <strong>fallo (miss)</strong> y hay que ir a la RAM.</p>
+      <p>En este simulador, la caché tiene <strong>solo 4 espacios</strong> y, cuando se llena, expulsa el dato que lleva más tiempo sin usarse (política LRU). Para cada solicitud, <strong>predice</strong> si será hit o miss.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Simulador de caché con 4 espacios</span><span class="lab-tag">Predice antes de ver</span></div>
+        <div class="lab-body">
+          <div class="sim-grid">
+            <div>
+              <div class="sim-req">
+                <span class="req-label">El CPU solicita el bloque</span>
+                <span class="req-block" id="simBlock">A</span>
+                <div class="sim-actions">
+                  <button class="btn" id="btnHit" type="button">Será HIT (está en caché)</button>
+                  <button class="btn ghost" id="btnMiss" type="button">Será MISS (ir a RAM)</button>
+                </div>
+                <div class="sim-feedback" id="simFeedback" aria-live="polite">Elige tu predicción para empezar.</div>
+              </div>
+              <div class="sim-actions" style="margin-top:.8rem;">
+                <button class="btn ghost" id="btnReset" type="button">Reiniciar simulación</button>
+              </div>
+            </div>
+            <div>
+              <span class="section-label">Contenido de la caché (del más reciente al más antiguo)</span>
+              <div class="cache-slots" id="slots"></div>
+              <div class="stats">
+                <div class="stat"><b id="stHit">0</b><span>Hits</span></div>
+                <div class="stat"><b id="stMiss">0</b><span>Misses</span></div>
+                <div class="stat"><b id="stScore">0</b><span>Aciertos tuyos</span></div>
+              </div>
+              <span class="section-label" style="margin-top:.9rem;">Historial</span>
+              <div class="hist" id="hist"></div>
+            </div>
+          </div>
+          <div class="callout note" id="simSummary" style="display:none;"><p id="simSummaryText"></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 4: CLASIFICACIÓN + QUIZ ══════════════ -->
+    <section class="section" id="e4">
+      <h2 class="section-title">Estación 4 · Clasifica y comprueba lo aprendido</h2>
+      <p>Primero, ubica cada elemento en el nivel de memoria donde <strong>vive principalmente</strong>: haz clic en un elemento y después en el nivel correcto.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Reto de clasificación</span><span class="lab-tag" id="clsScore">0 / 8</span></div>
+        <div class="lab-body">
+          <div class="cls-items" id="clsItems"></div>
+          <div class="cls-bins" id="clsBins"></div>
+          <div class="cls-msg" id="clsMsg" aria-live="polite">Selecciona un elemento para comenzar.</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:2rem;">Autoevaluación rápida</h3>
+      <p class="text-muted">Esta autoevaluación es solo para ti: no se califica ni se registra.</p>
+      <div id="quiz"></div>
+      <button class="btn" id="btnQuiz" type="button">Comprobar mis respuestas</button>
+      <div class="quiz-result" id="quizResult" aria-live="polite"></div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 5: OBSERVA TU EQUIPO ══════════════ -->
+    <section class="section" id="e5">
+      <h2 class="section-title">Estación 5 · Observa la jerarquía en tu propio equipo</h2>
+      <p>Ahora lleva lo aprendido a la práctica: abre la herramienta de monitoreo de tu dispositivo, anota los datos y genera tu resumen. Este ejercicio es la base de tu <strong>ficha técnica de componentes de hardware</strong> de la Unidad 1.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Práctica: radiografía de tu memoria</span><span class="lab-tag">Dispositivo propio</span></div>
+        <div class="lab-body">
+          <span class="section-label">¿Dónde encuentro estos datos?</span>
+          <div class="os-tabs" role="tablist">
+            <button class="speed-btn active" data-os="win" type="button">Windows</button>
+            <button class="speed-btn" data-os="mac" type="button">macOS</button>
+            <button class="speed-btn" data-os="and" type="button">Android</button>
+            <button class="speed-btn" data-os="ios" type="button">iPhone / iPad</button>
+          </div>
+          <div class="detail-analogy" id="osHelp" style="margin-bottom:1rem;"></div>
+
+          <div class="obs-grid">
+            <div class="field"><label for="inRam">RAM total (GB)</label><input id="inRam" type="number" min="0" step="0.5" placeholder="Ej. 8"></div>
+            <div class="field"><label for="inRamUse">RAM en uso ahora (GB)</label><input id="inRamUse" type="number" min="0" step="0.1" placeholder="Ej. 5.2"></div>
+            <div class="field"><label for="inDisk">Almacenamiento total (GB)</label><input id="inDisk" type="number" min="0" step="1" placeholder="Ej. 256"></div>
+            <div class="field"><label for="inDiskUse">Almacenamiento usado (GB)</label><input id="inDiskUse" type="number" min="0" step="1" placeholder="Ej. 180"></div>
+            <div class="field"><label for="inType">Tipo de almacenamiento</label>
+              <select id="inType"><option value="SSD">SSD</option><option value="HDD">HDD (disco mecánico)</option><option value="eMMC / memoria flash del dispositivo">eMMC / flash del dispositivo</option><option value="no identificado">No lo sé</option></select>
+            </div>
+            <div class="field"><label for="inDevice">Dispositivo</label><input id="inDevice" type="text" maxlength="40" placeholder="Ej. Laptop, celular..."></div>
+          </div>
+
+          <button class="btn" id="btnObs" type="button">Generar mi radiografía</button>
+
+          <div id="obsOut" style="display:none; margin-top:1.2rem;">
+            <div class="meter"><div class="m-top"><span>RAM en uso</span><span id="mRamTxt"></span></div><div class="m-track"><div class="m-fill" id="mRam"></div></div></div>
+            <div class="meter"><div class="m-top"><span>Almacenamiento ocupado</span><span id="mDiskTxt"></span></div><div class="m-track"><div class="m-fill" id="mDisk"></div></div></div>
+            <p id="obsComment" style="font-size:.92rem; margin-top:.6rem;"></p>
+            <span class="section-label" style="margin-top:.8rem;">Tu resumen (cópialo a tu ficha técnica)</span>
+            <textarea class="summary-box" id="obsSummary" readonly></textarea>
+            <div style="margin-top:.6rem;"><button class="btn ghost" id="btnCopy" type="button">Copiar resumen</button> <span id="copyMsg" style="font-size:.85rem; margin-left:.5rem;" aria-live="polite"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ CONCLUSIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Conclusión</h2>
+      <p>La jerarquía de memorias es una de las mejores demostraciones de que en ingeniería casi todo es un equilibrio. Como no existe una memoria que sea a la vez rápida, enorme y barata, las computadoras combinan varias: <strong>registros</strong> para lo inmediato, <strong>caché</strong> para lo reciente, <strong>RAM</strong> para lo que está en uso y <strong>almacenamiento secundario</strong> para conservar todo, incluso sin energía.</p>
+      <p>Gracias al principio de localidad, la mayor parte del tiempo el CPU encuentra lo que necesita en los niveles rápidos, y por eso percibimos una máquina veloz y con mucho espacio. En la próxima sesión veremos cómo los dispositivos de entrada, salida y los buses de comunicación conectan todas estas piezas con el mundo exterior.</p>
+    </section>
+
+    <!-- ══════════════ REFERENCIAS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Referencias bibliográficas</h2>
+      <p class="text-sm">Stallings, W. (2025). <em>Organización y arquitectura de computadoras</em> (11.ª ed.). Pearson Educación.</p>
+      <p class="text-sm">Patterson, D. A., y Hennessy, J. L. (2021). <em>Computer Organization and Design RISC-V Edition: The Hardware/Software Interface</em> (2.ª ed.). Morgan Kaufmann.</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Unidad 1 · Tema 1.3</span>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ═════════ Datos de los niveles ═════════ */
+  var LEVELS = [
+    { name: 'Registros', sub: 'Dentro del propio CPU',
+      desc: 'Pequeñas celdas de memoria construidas dentro del procesador. Guardan el dato o la dirección que la ALU y la Unidad de Control están usando justo ahora, como el contador de programa o el resultado de una suma.',
+      cap: 'Decenas de registros (unos cientos de bytes)', speed: 'Menos de 1 ns', vol: 'Volátil', cost: 'El más caro por byte',
+      analogy: 'Lo que traes en la cabeza: lo usas al instante, pero te caben muy pocas cosas.' },
+    { name: 'Memoria caché', sub: 'L1 · L2 · L3 (SRAM)',
+      desc: 'Memoria muy rápida situada dentro o junto al procesador. Guarda copias de los datos e instrucciones usados hace poco, apostando a que se volverán a necesitar (principio de localidad). Se organiza en niveles: L1 es la más pequeña y rápida; L3 es la más grande y más lenta.',
+      cap: 'De KB (L1) a decenas de MB (L3)', speed: 'De 1 a 15 ns aprox.', vol: 'Volátil', cost: 'Muy cara por byte',
+      analogy: 'La libreta de apuntes sobre tu escritorio: está al alcance de la mano y tiene lo que más consultas.' },
+    { name: 'Memoria RAM', sub: 'Memoria principal (DRAM)',
+      desc: 'Es el espacio de trabajo del sistema: aquí se cargan el sistema operativo, los programas abiertos y los documentos que estás editando. Es mucho más grande que la caché, aunque más lenta. Pierde su contenido al apagar el equipo.',
+      cap: 'De 4 a 64 GB en equipos comunes', speed: 'Cerca de 100 ns', vol: 'Volátil', cost: 'Costo intermedio',
+      analogy: 'El librero de tu cuarto: guarda bastante, pero tienes que levantarte a buscar el libro.' },
+    { name: 'Almacenamiento secundario', sub: 'SSD (flash) y HDD (disco mecánico)',
+      desc: 'Conserva la información de forma permanente, incluso sin energía: sistema operativo instalado, programas, fotos, videos y documentos. El SSD no tiene partes móviles y es mucho más veloz que el HDD, que gira platos magnéticos y mueve una cabeza de lectura.',
+      cap: 'De 256 GB a varios TB', speed: 'SSD: ~100,000 ns · HDD: ~10,000,000 ns', vol: 'No volátil', cost: 'El más barato por byte',
+      analogy: 'La biblioteca de la ciudad: cabe todo, pero ir y volver toma una tarde entera.' }
+  ];
+
+  var detail = document.getElementById('pyrDetail');
+  var pyrBtns = document.querySelectorAll('.pyr-btn');
+  function showLevel(i) {
+    var L = LEVELS[i];
+    pyrBtns.forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-lvl') === String(i)); });
+    detail.innerHTML =
+      '<h3>' + L.name + '</h3><span class="detail-sub">' + L.sub + '</span>' +
+      '<p style="font-size:.92rem;margin-bottom:.4rem;">' + L.desc + '</p>' +
+      '<div class="spec-grid">' +
+      '<div class="spec"><b>Capacidad típica</b>' + L.cap + '</div>' +
+      '<div class="spec"><b>Velocidad de acceso</b>' + L.speed + '</div>' +
+      '<div class="spec"><b>Volatilidad</b>' + L.vol + '</div>' +
+      '<div class="spec"><b>Costo por byte</b>' + L.cost + '</div>' +
+      '</div>' +
+      '<div class="detail-analogy"><strong>Analogía:</strong> ' + L.analogy + '</div>';
+  }
+  pyrBtns.forEach(function (b) {
+    b.addEventListener('click', function () { showLevel(parseInt(b.getAttribute('data-lvl'), 10)); });
+  });
+  showLevel(1);
+
+  /* ═════════ Escala de velocidad ═════════ */
+  var SPEEDS = [
+    { name: 'Registro', ns: 0.3, real: '≈ 0.3 ns', note: 'Menos de un nanosegundo: es parte del propio CPU.' },
+    { name: 'Caché', ns: 4, real: '≈ 4 ns', note: 'Valor típico de una caché L2; L1 es aún más rápida.' },
+    { name: 'RAM', ns: 100, real: '≈ 100 ns', note: 'Cien veces más lenta que la caché más rápida.' },
+    { name: 'SSD', ns: 100000, real: '≈ 100 µs', note: '100,000 ns: miles de veces más lento que la RAM.' },
+    { name: 'HDD', ns: 10000000, real: '≈ 10 ms', note: '10 millones de ns: tiene que mover piezas mecánicas.' }
+  ];
+  function humanTime(s) {
+    var nf = function (x, d) { return x.toLocaleString('es-MX', { maximumFractionDigits: d }); };
+    if (s < 60) return nf(s, 1) + ' segundos';
+    if (s < 3600) { var m = Math.floor(s / 60), r = Math.round(s - m * 60); return m + ' min ' + r + ' s'; }
+    if (s < 86400) { return nf(s / 3600, 1) + ' horas'; }
+    var d = s / 86400;
+    if (d < 60) return nf(d, 1) + ' días';
+    return nf(d, 0) + ' días (≈ ' + nf(d / 30.4, 1) + ' meses)';
+  }
+  var sBtns = document.getElementById('speedBtns');
+  var sFill = document.getElementById('speedFill');
+  SPEEDS.forEach(function (sp, idx) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'speed-btn'; b.textContent = sp.name;
+    b.addEventListener('click', function () {
+      sBtns.querySelectorAll('.speed-btn').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      var pct = (Math.log10(sp.ns) + 0.6) / (7 + 0.6) * 100;
+      sFill.style.width = Math.max(4, Math.min(100, pct)) + '%';
+      document.getElementById('sbReal').textContent = sp.real;
+      document.getElementById('sbRealNote').textContent = sp.note;
+      document.getElementById('sbHuman').textContent = humanTime(sp.ns);
+      var base = SPEEDS[1];
+      var times = sp.ns / base.ns;
+      document.getElementById('sbHumanNote').textContent = sp.name === 'Caché'
+        ? 'Nuestro punto de comparación.'
+        : (times >= 1 ? 'Unas ' + times.toLocaleString('es-MX', { maximumFractionDigits: 0 }) + ' veces el tiempo de la caché.' : 'Más rápido que la caché.');
+    });
+    sBtns.appendChild(b);
+    if (idx === 0) { /* sin selección inicial */ }
+  });
+
+  /* ═════════ Simulador de caché ═════════ */
+  var SEQ = ['A','B','A','C','A','B','D','E','A','B','F','A','C','B','A','E','D','A','B','C'];
+  var CAP = 4;
+  var pos = 0, cache = [], hits = 0, misses = 0, score = 0, awaiting = true;
+  var elBlock = document.getElementById('simBlock');
+  var elSlots = document.getElementById('slots');
+  var elFb = document.getElementById('simFeedback');
+  var elHist = document.getElementById('hist');
+  var btnHit = document.getElementById('btnHit');
+  var btnMiss = document.getElementById('btnMiss');
+
+  function renderSlots(flashBlock, flashType) {
+    elSlots.innerHTML = '';
+    for (var i = 0; i < CAP; i++) {
+      var d = document.createElement('div');
+      d.className = 'slot';
+      if (cache[i]) {
+        d.classList.add('filled');
+        d.innerHTML = cache[i] + '<small>' + (i === 0 ? 'más reciente' : (i === CAP - 1 ? 'más antiguo' : '&nbsp;')) + '</small>';
+        if (cache[i] === flashBlock) d.classList.add(flashType === 'hit' ? 'flash-hit' : 'flash-new');
+      } else {
+        d.innerHTML = '·<small>vacío</small>';
+      }
+      elSlots.appendChild(d);
+    }
+  }
+  function updateStats() {
+    document.getElementById('stHit').textContent = hits;
+    document.getElementById('stMiss').textContent = misses;
+    document.getElementById('stScore').textContent = score;
+  }
+  function showRequest() {
+    if (pos >= SEQ.length) { finishSim(); return; }
+    elBlock.textContent = SEQ[pos];
+    btnHit.disabled = false; btnMiss.disabled = false; awaiting = true;
+  }
+  function answer(guessHit) {
+    if (!awaiting || pos >= SEQ.length) return;
+    awaiting = false;
+    btnHit.disabled = true; btnMiss.disabled = true;
+    var blk = SEQ[pos];
+    var idx = cache.indexOf(blk);
+    var isHit = idx !== -1;
+    if (isHit) { cache.splice(idx, 1); hits++; } else { misses++; if (cache.length >= CAP) cache.pop(); }
+    cache.unshift(blk);
+    var right = (guessHit === isHit);
+    if (right) score++;
+    var msg = (isHit
+      ? 'HIT: el bloque ' + blk + ' ya estaba en la caché; se entregó casi al instante.'
+      : 'MISS: el bloque ' + blk + ' no estaba; se trajo desde la RAM y se guardó en la caché.');
+    elFb.className = 'sim-feedback ' + (right ? 'ok' : 'bad');
+    elFb.textContent = (right ? 'Correcto. ' : 'No exactamente. ') + msg;
+    var h = document.createElement('span');
+    h.className = isHit ? 'h' : 'm'; h.textContent = blk;
+    h.title = isHit ? 'Hit' : 'Miss';
+    elHist.appendChild(h);
+    renderSlots(blk, isHit ? 'hit' : 'new');
+    updateStats();
+    pos++;
+    setTimeout(showRequest, 1100);
+  }
+  function finishSim() {
+    elBlock.textContent = '—';
+    btnHit.disabled = true; btnMiss.disabled = true;
+    var total = hits + misses;
+    var rate = total ? hits / total : 0;
+    var avg = rate * 1 + (1 - rate) * 100;
+    var box = document.getElementById('simSummary');
+    document.getElementById('simSummaryText').innerHTML =
+      '<strong>Resultado:</strong> ' + hits + ' hits y ' + misses + ' misses en ' + total + ' solicitudes (' + Math.round(rate * 100) + ' % de aciertos). ' +
+      'Si un hit cuesta 1 ns y un miss 100 ns (viaje a la RAM), el tiempo medio de acceso fue de <strong>' +
+      avg.toLocaleString('es-MX', { maximumFractionDigits: 1 }) + ' ns</strong> en lugar de 100 ns sin caché. ' +
+      'Acertaste ' + score + ' de ' + total + ' predicciones. Reinicia para intentarlo de nuevo.';
+    box.style.display = 'block';
+    elFb.className = 'sim-feedback'; elFb.textContent = 'Simulación terminada.';
+  }
+  function resetSim() {
+    pos = 0; cache = []; hits = 0; misses = 0; score = 0;
+    elHist.innerHTML = ''; document.getElementById('simSummary').style.display = 'none';
+    elFb.className = 'sim-feedback'; elFb.textContent = 'Elige tu predicción para empezar.';
+    renderSlots(); updateStats(); showRequest();
+  }
+  btnHit.addEventListener('click', function () { answer(true); });
+  btnMiss.addEventListener('click', function () { answer(false); });
+  document.getElementById('btnReset').addEventListener('click', resetSim);
+  resetSim();
+
+  /* ═════════ Clasificación ═════════ */
+  var BINS = ['Registros', 'Caché', 'RAM', 'Almacenamiento secundario'];
+  var ITEMS = [
+    { t: 'El resultado de la suma que la ALU acaba de calcular', b: 0 },
+    { t: 'Instrucciones que el CPU usó hace nanosegundos y probablemente repetirá', b: 1 },
+    { t: 'Las pestañas y programas abiertos en este momento', b: 2 },
+    { t: 'Tus fotos y videos guardados en el teléfono', b: 3 },
+    { t: 'El contador de programa (indica la siguiente instrucción)', b: 0 },
+    { t: 'Un videojuego instalado que hoy no estás jugando', b: 3 },
+    { t: 'El documento de texto que estás editando ahora mismo', b: 2 },
+    { t: 'Memoria SRAM L1, L2 y L3 junto a los núcleos del procesador', b: 1 }
+  ];
+  var clsDone = 0, selected = null;
+  var elItems = document.getElementById('clsItems');
+  var elBins = document.getElementById('clsBins');
+  var elMsg = document.getElementById('clsMsg');
+  var counts = [0, 0, 0, 0];
+  var itemEls = [];
+  ITEMS.forEach(function (it, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'item-btn'; b.textContent = it.t;
+    b.addEventListener('click', function () {
+      if (b.classList.contains('done')) return;
+      itemEls.forEach(function (x) { x.classList.remove('selected'); });
+      b.classList.add('selected'); selected = i;
+      elMsg.textContent = 'Ahora elige el nivel donde vive este elemento.';
+    });
+    elItems.appendChild(b); itemEls.push(b);
+  });
+  var binEls = [];
+  BINS.forEach(function (name, bi) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'bin-btn';
+    b.innerHTML = name + '<span class="bin-count">0 elementos</span>';
+    b.addEventListener('click', function () {
+      if (selected === null) { elMsg.textContent = 'Primero selecciona un elemento de la lista.'; return; }
+      var it = ITEMS[selected];
+      if (it.b === bi) {
+        itemEls[selected].classList.remove('selected'); itemEls[selected].classList.add('done');
+        counts[bi]++; clsDone++;
+        b.querySelector('.bin-count').textContent = counts[bi] + (counts[bi] === 1 ? ' elemento' : ' elementos');
+        document.getElementById('clsScore').textContent = clsDone + ' / ' + ITEMS.length;
+        elMsg.textContent = (clsDone === ITEMS.length)
+          ? 'Excelente: clasificaste todos los elementos correctamente.'
+          : 'Correcto. Sigue con otro elemento.';
+        selected = null;
+      } else {
+        b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+        elMsg.textContent = 'Todavía no. Piensa: ¿qué tan rápido lo necesita el CPU y si debe sobrevivir al apagado?';
+      }
+    });
+    elBins.appendChild(b); binEls.push(b);
+  });
+
+  /* ═════════ Autoevaluación ═════════ */
+  var QUIZ = [
+    { q: '¿Qué nivel de la jerarquía es el más rápido, pero también el de menor capacidad?',
+      o: ['Almacenamiento secundario', 'Memoria RAM', 'Registros', 'Caché L3'], a: 2,
+      e: 'Los registros están dentro del CPU: son los más rápidos y los más pequeños.' },
+    { q: '¿Por qué se pierde el contenido de la RAM al apagar el equipo?',
+      o: ['Porque es volátil y necesita energía para conservar los datos', 'Porque el CPU la borra al apagarse', 'Porque es de menor capacidad que el disco', 'Porque guarda los datos en la caché'], a: 0,
+      e: 'La RAM es memoria volátil: requiere alimentación eléctrica constante.' },
+    { q: '¿En qué se basa la utilidad de la memoria caché?',
+      o: ['En que es la memoria más barata', 'En el principio de localidad: lo usado hace poco suele usarse de nuevo', 'En que almacena el sistema operativo completo', 'En que reemplaza a la RAM'], a: 1,
+      e: 'La caché guarda copias de lo reciente porque los programas tienden a reutilizar datos e instrucciones cercanos en el tiempo y el espacio.' },
+    { q: '¿Cuál de estos dispositivos es almacenamiento secundario?',
+      o: ['Un registro del CPU', 'La caché L1', 'Un SSD', 'El contador de programa'], a: 2,
+      e: 'Un SSD conserva los datos de forma permanente, incluso sin energía.' },
+    { q: 'En la analogía del examen, ¿qué representa la RAM?',
+      o: ['Lo que traes en la cabeza', 'La libreta sobre el escritorio', 'El librero de tu cuarto', 'La biblioteca de la ciudad'], a: 2,
+      e: 'El librero guarda bastante, pero hay que levantarse a buscar: igual que la RAM frente a la caché.' }
+  ];
+  var elQuiz = document.getElementById('quiz');
+  QUIZ.forEach(function (Q, qi) {
+    var d = document.createElement('div'); d.className = 'q'; d.id = 'q' + qi;
+    var html = '<div class="q-text">' + (qi + 1) + '. ' + Q.q + '</div>';
+    Q.o.forEach(function (opt, oi) {
+      html += '<label><input type="radio" name="q' + qi + '" value="' + oi + '"> ' + opt + '</label>';
+    });
+    html += '<div class="q-expl"><strong>Explicación:</strong> ' + Q.e + '</div>';
+    d.innerHTML = html; elQuiz.appendChild(d);
+  });
+  document.getElementById('btnQuiz').addEventListener('click', function () {
+    var ok = 0, unanswered = 0;
+    QUIZ.forEach(function (Q, qi) {
+      var box = document.getElementById('q' + qi);
+      var sel = box.querySelector('input:checked');
+      box.classList.remove('right', 'wrong', 'shown');
+      box.querySelectorAll('label').forEach(function (l) { l.classList.remove('chosen'); });
+      if (!sel) { unanswered++; return; }
+      sel.parentNode.classList.add('chosen');
+      var right = parseInt(sel.value, 10) === Q.a;
+      if (right) ok++;
+      box.classList.add(right ? 'right' : 'wrong', 'shown');
+    });
+    var res = document.getElementById('quizResult');
+    res.textContent = unanswered
+      ? 'Te faltan ' + unanswered + ' pregunta(s) por responder. Aciertos hasta ahora: ' + ok + ' de ' + QUIZ.length + '.'
+      : 'Resultado: ' + ok + ' de ' + QUIZ.length + (ok === QUIZ.length ? '. Muy bien, dominas el tema.' : '. Revisa las explicaciones y vuelve a intentarlo.');
+  });
+
+  /* ═════════ Observa tu equipo ═════════ */
+  var OS_HELP = {
+    win: '<strong>Windows:</strong> presiona <code>Ctrl + Shift + Esc</code> para abrir el Administrador de tareas, entra a la pestaña <em>Rendimiento</em> y consulta <em>Memoria</em> (RAM total y en uso) y <em>Disco</em> (tipo SSD o HDD). La capacidad total y ocupada está en <em>Este equipo</em>.',
+    mac: '<strong>macOS:</strong> abre <em>Monitor de Actividad</em> (Spotlight, <code>Cmd + Espacio</code>) y revisa la pestaña <em>Memoria</em>. Para el almacenamiento: menú Apple → <em>Acerca de este Mac</em> → <em>Almacenamiento</em>.',
+    and: '<strong>Android:</strong> entra a <em>Ajustes → Almacenamiento</em> para ver capacidad total y usada. La RAM suele verse en <em>Ajustes → Acerca del teléfono</em> o en <em>Cuidado del dispositivo / Mantenimiento</em>, según la marca.',
+    ios: '<strong>iPhone / iPad:</strong> ve a <em>Ajustes → General → Almacenamiento del iPhone</em> para el almacenamiento total y usado. La RAM no se muestra en Ajustes; puedes buscar la cifra del modelo en el sitio oficial del fabricante.'
+  };
+  var osHelp = document.getElementById('osHelp');
+  osHelp.innerHTML = OS_HELP.win;
+  document.querySelectorAll('[data-os]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('[data-os]').forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active'); osHelp.innerHTML = OS_HELP[b.getAttribute('data-os')];
+    });
+  });
+  function num(id) { var v = parseFloat(document.getElementById(id).value); return isNaN(v) ? null : v; }
+  document.getElementById('btnObs').addEventListener('click', function () {
+    var ram = num('inRam'), ramU = num('inRamUse'), dk = num('inDisk'), dkU = num('inDiskUse');
+    var type = document.getElementById('inType').value;
+    var dev = document.getElementById('inDevice').value.trim() || 'Mi dispositivo';
+    var out = document.getElementById('obsOut');
+    var cm = document.getElementById('obsComment');
+    if (!ram || ramU === null || !dk || dkU === null || ramU > ram || dkU > dk) {
+      out.style.display = 'block';
+      cm.textContent = 'Revisa tus datos: completa los cuatro campos numéricos y verifica que lo usado no sea mayor que el total.';
+      document.getElementById('obsSummary').value = '';
+      document.getElementById('mRam').style.width = '0'; document.getElementById('mDisk').style.width = '0';
+      document.getElementById('mRamTxt').textContent = ''; document.getElementById('mDiskTxt').textContent = '';
+      return;
+    }
+    var pr = Math.round(ramU / ram * 100), pd = Math.round(dkU / dk * 100);
+    out.style.display = 'block';
+    document.getElementById('mRam').style.width = pr + '%';
+    document.getElementById('mDisk').style.width = pd + '%';
+    document.getElementById('mRamTxt').textContent = ramU + ' de ' + ram + ' GB (' + pr + ' %)';
+    document.getElementById('mDiskTxt').textContent = dkU + ' de ' + dk + ' GB (' + pd + ' %)';
+    var c = [];
+    if (pr >= 80) c.push('Tu RAM está muy exigida: cuando se llena, el sistema empieza a usar el almacenamiento como apoyo y todo se siente más lento.');
+    else if (pr >= 50) c.push('Tu RAM tiene un uso moderado: hay margen, pero conviene cerrar programas que no uses.');
+    else c.push('Tu RAM tiene bastante margen libre para nuevas tareas.');
+    if (pd >= 90) c.push('Tu almacenamiento está casi lleno; liberar espacio ayuda al rendimiento.');
+    if (type === 'HDD') c.push('Al ser un disco mecánico (HDD), el almacenamiento es el eslabón más lento de tu jerarquía: un SSD sería la mejora más notoria.');
+    cm.textContent = c.join(' ');
+    document.getElementById('obsSummary').value =
+      'Radiografía de memoria — ' + dev + '\n' +
+      '• RAM: ' + ramU + ' GB en uso de ' + ram + ' GB (' + pr + ' %)\n' +
+      '• Almacenamiento secundario (' + type + '): ' + dkU + ' GB usados de ' + dk + ' GB (' + pd + ' %)\n' +
+      '• Jerarquía: registros → caché → RAM → almacenamiento secundario';
+  });
+  document.getElementById('btnCopy').addEventListener('click', function () {
+    var ta = document.getElementById('obsSummary'); var msg = document.getElementById('copyMsg');
+    if (!ta.value) { msg.textContent = 'Primero genera tu radiografía.'; return; }
+    function fallback() {
+      ta.focus(); ta.select();
+      try { msg.textContent = document.execCommand('copy') ? 'Copiado.' : 'Selecciona el texto y cópialo manualmente.'; }
+      catch (e) { msg.textContent = 'Selecciona el texto y cópialo manualmente.'; }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ta.value).then(function () { msg.textContent = 'Copiado.'; }, fallback);
+    } else { fallback(); }
+  });
+})();
+</script>
+</body>
+</html>
