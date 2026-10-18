@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 1.4 — Dispositivos de entrada, salida y buses de comunicación</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .mascot-tip {
+    display: flex; align-items: center; gap: 1.4rem;
+    background: var(--guinda-light); border: 1px solid #D8A8BA;
+    border-radius: var(--radius-lg); padding: 1.3rem 1.6rem; margin: 1.75rem 0;
+  }
+  .mascot-tip img { width: 82px; height: auto; flex-shrink: 0; }
+  .mascot-tip .mascot-label {
+    font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--guinda); font-weight: 700; display: block; margin-bottom: .3rem;
+  }
+  .mascot-tip p { font-size: .95rem; margin-bottom: 0; }
+  @media (max-width: 520px) { .mascot-tip { flex-direction: column; text-align: center; } }
+
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid; grid-template-columns: 190px 1fr; gap: .5rem;
+    padding: .5rem 0; border-bottom: 1px dashed var(--border); font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600;
+  }
+  @media (max-width: 560px) { .info-list li { grid-template-columns: 1fr; gap: .15rem; } }
+
+  /* Ruta de la clase */
+  .route { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6rem; margin: 1.25rem 0 0; counter-reset: stop; }
+  @media (max-width: 760px) { .route { grid-template-columns: 1fr 1fr; } }
+  .route a {
+    display: block; text-decoration: none; text-align: center;
+    background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: .7rem .5rem; font-family: var(--font-ui); font-size: .78rem; font-weight: 600; color: var(--ink);
+    transition: border-color .15s, transform .15s;
+  }
+  .route a:hover { border-color: var(--guinda); transform: translateY(-2px); text-decoration: none; color: var(--guinda); }
+  .route a::before {
+    counter-increment: stop; content: counter(stop);
+    display: block; width: 24px; height: 24px; line-height: 24px; margin: 0 auto .35rem;
+    border-radius: 50%; background: var(--guinda); color: var(--white); font-size: .72rem; font-weight: 700;
+  }
+
+  /* Contenedor de laboratorios */
+  .lab {
+    border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+    margin: 1.5rem 0; box-shadow: var(--shadow-sm); background: var(--off-white);
+  }
+  .lab-header {
+    background: var(--guinda); color: var(--white); padding: .7rem 1.4rem;
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; letter-spacing: .04em;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .lab-header .lab-tag { font-weight: 500; opacity: .8; text-transform: uppercase; font-size: .72rem; letter-spacing: .1em; }
+  .lab-body { padding: 1.3rem 1.5rem; }
+  .lab-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); font-weight: 700; display: block; margin: 1.4rem 0 .6rem; }
+  .lab-sub:first-child { margin-top: 0; }
+
+  .btn {
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; cursor: pointer;
+    background: var(--guinda); color: var(--white); border: 2px solid var(--guinda);
+    padding: .55rem 1.1rem; border-radius: var(--radius-md); transition: background .15s, transform .1s;
+  }
+  .btn:hover { background: var(--guinda-dark); }
+  .btn:active { transform: scale(.97); }
+  .btn.ghost { background: var(--white); color: var(--guinda); }
+  .btn.ghost:hover { background: var(--guinda-light); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, .chip-btn:focus-visible, .dv-opt:focus-visible, .node:focus-visible {
+    outline: 3px solid var(--guinda-rule); outline-offset: 2px;
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+  .chip-btn {
+    cursor: pointer; font-family: var(--font-ui); font-size: .8rem; font-weight: 600;
+    background: var(--white); color: var(--guinda); border: 2px solid var(--guinda);
+    padding: .45rem .9rem; border-radius: 999px; transition: background .15s;
+  }
+  .chip-btn:hover { background: var(--guinda-light); }
+  .chip-btn.active { background: var(--guinda); color: var(--white); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .stat { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .5rem; text-align: center; }
+  .stat b { display: block; font-family: var(--font-display); font-size: 1.4rem; color: var(--guinda); }
+  .stat span { font-family: var(--font-ui); font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); }
+
+  /* Mapa SVG */
+  .map-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .8rem; margin: 1.2rem 0; overflow-x: auto; }
+  .map-wrap svg { width: 100%; height: auto; min-width: 560px; display: block; }
+  .map-caption { font-family: var(--font-ui); font-size: .78rem; color: var(--ink-muted); text-align: center; margin-top: .4rem; }
+
+  /* Tabla de buses */
+  .tbl-wrap { overflow-x: auto; }
+
+  /* Estación 1: aduana de dispositivos */
+  .dv-card {
+    background: var(--white); border: 2px solid var(--guinda); border-radius: var(--radius-lg);
+    text-align: center; padding: 1.4rem 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-md);
+  }
+  .dv-card .dv-label { font-family: var(--font-ui); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-muted); display: block; }
+  .dv-card .dv-name { font-family: var(--font-display); font-size: 2rem; font-weight: 600; color: var(--guinda); display: block; margin: .3rem 0; line-height: 1.15; }
+  .dv-card .dv-hint { font-size: .9rem; color: var(--ink-secondary); display: block; }
+  .dv-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  @media (max-width: 560px) { .dv-opts { grid-template-columns: 1fr; } }
+  .dv-opt {
+    cursor: pointer; font-family: var(--font-ui); font-size: .85rem; font-weight: 700; text-align: center;
+    background: var(--surface); color: var(--guinda); border: 2px dashed var(--guinda-rule);
+    border-radius: var(--radius-md); padding: .9rem .5rem; transition: background .15s, transform .15s;
+  }
+  .dv-opt small { display: block; font-weight: 500; font-size: .7rem; color: var(--ink-muted); margin-top: .15rem; }
+  .dv-opt:hover:not(:disabled) { background: var(--guinda-light); transform: translateY(-2px); }
+  .dv-opt:disabled { cursor: default; }
+  .dv-opt.good { background: #e8f5ec; border: 2px solid #1e6b3a; color: #1e6b3a; }
+  .dv-opt.bad { background: #fbe9e9; border: 2px solid #a12b2b; color: #a12b2b; animation: shake .35s; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .dv-feedback { min-height: 3.4em; margin-top: .9rem; font-size: .93rem; }
+  .dv-feedback.ok { color: #1e6b3a; font-weight: 600; } .dv-feedback.bad { color: #a12b2b; font-weight: 600; }
+  .dv-progress { height: 8px; background: var(--surface); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 1rem; }
+  .dv-progress div { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .4s ease; }
+
+  /* Estación 2: viaje de un dato */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
+  .node {
+    background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md);
+    padding: .7rem .4rem; text-align: center; transition: background .3s, border-color .3s, color .3s, transform .3s;
+  }
+  .node .node-role { display: block; font-family: var(--font-ui); font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); }
+  .node .node-name { display: block; font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); margin-top: .2rem; line-height: 1.25; }
+  .node.passed { background: var(--guinda-light); border-color: var(--guinda-rule); }
+  .node.active { background: var(--guinda); border-color: var(--guinda); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .node.active .node-role, .node.active .node-name { color: var(--white); }
+  .flow-track { position: relative; height: 54px; margin-top: .5rem; }
+  .flow-track::before { content: ""; position: absolute; left: 10%; right: 10%; top: 50%; height: 4px; margin-top: -2px; background: repeating-linear-gradient(90deg, var(--guinda-rule) 0 10px, transparent 10px 18px); border-radius: 2px; }
+  .flow-stop { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--white); border: 3px solid var(--guinda-rule); }
+  .packet {
+    position: absolute; top: 50%; left: 10%; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+    transition: left .8s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 2px 3px rgba(73,11,88,.35));
+  }
+  .packet img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  @media (max-width: 700px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-track { display: none; }
+    .node { display: flex; align-items: center; gap: .8rem; text-align: left; padding: .6rem .9rem; }
+    .node .node-name { margin-top: 0; }
+  }
+  .flow-text { margin-top: 1rem; background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.3rem; }
+  .flow-text h3 { font-family: var(--font-ui); font-size: 1rem; color: var(--guinda); margin-bottom: .3rem; }
+  .flow-text p { font-size: .95rem; margin-bottom: 0; }
+
+  /* Estación 3: buses */
+  .lanes { display: grid; gap: .6rem; }
+  .lane {
+    display: grid; grid-template-columns: 170px 90px 1fr; gap: .8rem; align-items: center;
+    background: var(--white); border: 2px solid var(--border); border-radius: var(--radius-md); padding: .65rem .9rem;
+    transition: border-color .3s, background .3s;
+  }
+  .lane .ln-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .lane .ln-name small { display: block; font-size: .66rem; font-weight: 500; color: var(--ink-muted); }
+  .lane .ln-dir { font-family: var(--font-ui); font-size: .72rem; color: var(--ink-secondary); text-align: center; }
+  .lane .ln-dir b { display: block; font-size: 1.3rem; color: var(--guinda-rule); line-height: 1; }
+  .lane .ln-val { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--ink-muted); min-height: 1.6em; }
+  .lane.on { border-color: var(--guinda); background: var(--guinda-light); }
+  .lane.on .ln-val { color: var(--guinda); }
+  .lane.on .ln-dir b { color: var(--guinda); }
+  @media (max-width: 640px) { .lane { grid-template-columns: 1fr; gap: .2rem; } .lane .ln-dir { text-align: left; } .lane .ln-dir b { display: inline; margin-right: .4rem; } }
+
+  .calc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .calc-grid { grid-template-columns: 1fr; } }
+  .field label { display: block; font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600; margin-bottom: .25rem; }
+  .field input[type="number"], .field input[type="text"], .field select {
+    width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink);
+  }
+  .field input[type="range"] { width: 100%; accent-color: #490b58; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--guinda-rule); border-color: var(--guinda); }
+  .bits { display: flex; flex-wrap: wrap; gap: 2px; margin-top: .5rem; min-height: 16px; }
+  .bits i { display: block; width: 9px; height: 16px; border-radius: 2px; background: var(--guinda-rule); }
+  .bits.data i { background: var(--guinda); }
+  .calc-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: 1.1rem; }
+  @media (max-width: 760px) { .calc-out { grid-template-columns: 1fr; } }
+  .out-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .out-box .ob-label { font-family: var(--font-ui); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); display: block; }
+  .out-box .ob-value { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; color: var(--guinda); line-height: 1.2; display: block; word-break: break-word; }
+  .out-box .ob-note { font-size: .82rem; color: var(--ink-secondary); display: block; margin-top: .2rem; }
+
+  /* Estación 4: carrera */
+  .race-presets { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem 0 1rem; }
+  .race-size { display: grid; grid-template-columns: 1fr 120px; gap: .6rem; max-width: 360px; margin-bottom: .6rem; }
+  .race-row { display: grid; grid-template-columns: 190px 1fr 130px; gap: .8rem; align-items: center; margin: .55rem 0; }
+  @media (max-width: 700px) { .race-row { grid-template-columns: 1fr; gap: .25rem; margin: .9rem 0; } }
+  .race-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--ink); }
+  .race-name small { display: block; font-weight: 500; color: var(--ink-muted); font-size: .68rem; }
+  .race-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 22px; overflow: hidden; }
+  .race-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #C85070, #7B1034); }
+  .race-fill.run { transition: width 3s cubic-bezier(.25,.6,.3,1); }
+  .race-time { font-family: var(--font-mono); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .race-winner { color: #1e6b3a; }
+
+  /* Estación 5: ficha */
+  .chk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .chk-grid { grid-template-columns: 1fr; } }
+  .chk-group { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .chk-group h4 { font-family: var(--font-ui); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda); margin-bottom: .5rem; }
+  .chk-group label { display: flex; gap: .5rem; align-items: center; font-size: .9rem; padding: .22rem 0; cursor: pointer; }
+  .chk-group input { accent-color: #490b58; width: 16px; height: 16px; }
+  .ficha-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .ficha-fields { grid-template-columns: 1fr; } }
+  .summary-box {
+    width: 100%; min-height: 190px; font-family: var(--font-mono); font-size: .8rem; padding: .7rem .9rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); resize: vertical;
+  }
+
+  /* Quiz */
+  .q { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; margin-bottom: .9rem; }
+  .q .q-text { font-weight: 600; margin-bottom: .5rem; font-size: .96rem; }
+  .q label {
+    display: block; padding: .4rem .7rem; margin: .25rem 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; font-size: .92rem; transition: background .15s;
+  }
+  .q label:hover { background: var(--guinda-light); }
+  .q input { margin-right: .5rem; accent-color: #490b58; }
+  .q.right label.chosen { background: #e8f5ec; border-color: #1e6b3a; }
+  .q.wrong label.chosen { background: #fbe9e9; border-color: #a12b2b; }
+  .q .q-expl { display: none; font-size: .86rem; color: var(--ink-secondary); margin-top: .5rem; padding-left: .7rem; border-left: 3px solid var(--guinda-rule); }
+  .q.shown .q-expl { display: block; }
+  .quiz-result { font-family: var(--font-display); font-size: 1.3rem; color: var(--guinda); margin-top: .8rem; font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .packet, .node, .route a, .dv-progress div { transition: none; }
+    .race-fill.run { transition: none; }
+    .dv-opt.bad { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap"><img src="imagen1.png" alt="Logo IEDEP"></div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Guía de clase interactiva — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Unidad 1 · Arquitectura y Hardware de Computadoras</span>
+    <h1>Dispositivos de entrada, salida y buses de comunicación</h1>
+    <span class="class-subtitle">Una computadora aislada no sirve de nada: necesita ojos, oídos, voz y caminos internos para mover la información. Hoy los vas a clasificar, seguir y medir.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Fecha<span>Domingo 18 de octubre de 2026</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha de la clase</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Unidad</span><span>1. Arquitectura y Hardware de Computadoras</span></li>
+          <li><span class="info-label">Tema</span><span>1.4 Dispositivos de entrada, salida y buses de comunicación</span></li>
+          <li><span class="info-label">Fecha</span><span>Domingo 18 de octubre de 2026</span></li>
+        </ul>
+      </div>
+
+      <span class="section-label">Competencias a desarrollar</span>
+      <div class="competency-card">
+        <span class="comp-num">01</span>
+        <span class="comp-text"><strong>Competencia de unidad:</strong> Usar los componentes de la Arquitectura de Von Neumann (CPU, Memoria, E/S) y los sistemas de numeración, tomando como base el análisis de su funcionamiento electrónico y lógico, con el propósito de comprender cómo los datos físicos se transforman en información procesable.</span>
+      </div>
+      <div class="competency-card">
+        <span class="comp-num">02</span>
+        <span class="comp-text"><strong>Competencia del tema:</strong> Clasificar los dispositivos de entrada, salida y entrada/salida, y distinguir la función de los buses de datos, de direcciones y de control, relacionando el ancho y la velocidad de cada canal con el rendimiento del equipo, para explicar cómo la computadora se comunica con el exterior y entre sus componentes.</span>
+      </div>
+
+      <span class="section-label" style="margin-top:1.5rem;">Ruta de la clase (haz clic para ir a cada estación)</span>
+      <nav class="route" aria-label="Ruta de la clase">
+        <a href="#e1">Clasifica dispositivos</a>
+        <a href="#e2">Sigue el viaje de un dato</a>
+        <a href="#e3">Explora los buses</a>
+        <a href="#e4">Carrera de interfaces</a>
+        <a href="#e5">Tu ficha de E/S</a>
+      </nav>
+    </section>
+
+    <!-- ══════════════ INTRO ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">El problema: una computadora sin puertas ni calles</h2>
+      <p>En las sesiones anteriores conociste al CPU, que piensa, y a la memoria, que recuerda. Pero imagina una computadora con un CPU brillante y una memoria enorme, sin teclado, sin pantalla, sin Internet y sin ningún camino interno para que sus piezas se hablen. Sería como un genio encerrado en un cuarto sin puertas: muy capaz, pero inútil.</p>
+      <p>Dos elementos resuelven este problema. Los <strong>dispositivos de entrada y salida (E/S)</strong> son las puertas que comunican la computadora con el mundo exterior. Los <strong>buses de comunicación</strong> son las calles internas por las que viajan los datos entre el CPU, la memoria y esos dispositivos.</p>
+
+      <div class="concept-box">
+        <span class="concept-title">Analogía: la computadora es una ciudad amurallada</span>
+        <p>El <strong>CPU</strong> es el ayuntamiento, donde se toman las decisiones. La <strong>memoria</strong> es el archivo municipal. Las <strong>puertas de la muralla</strong> son los dispositivos de E/S: por unas entra la gente y la mercancía (<strong>entrada</strong>: teclado, ratón, micrófono), por otras sale (<strong>salida</strong>: pantalla, bocinas, impresora) y algunas dejan pasar en ambos sentidos (<strong>entrada y salida</strong>: pantalla táctil, memoria USB). Dentro de la ciudad hay <strong>tres sistemas de calles</strong>: las <em>placas con el nombre de cada calle</em> (bus de direcciones), los <em>camiones que transportan la carga</em> (bus de datos) y los <em>semáforos y policías de tránsito</em> (bus de control).</p>
+      </div>
+
+      <div class="map-wrap">
+        <svg viewBox="0 0 830 330" role="img" aria-labelledby="mapTitle mapDesc">
+          <title id="mapTitle">Mapa de la computadora con sus tres buses</title>
+          <desc id="mapDesc">El CPU y la memoria se conectan mediante tres buses (direcciones, datos y control) con los controladores de entrada y salida, y de ahí con los dispositivos: teclado, ratón, pantalla táctil, monitor e impresora.</desc>
+          <!-- Buses -->
+          <g stroke-width="5" stroke-linecap="round">
+            <line x1="30" y1="105" x2="680" y2="105" stroke="#96324C"/>
+            <line x1="30" y1="135" x2="680" y2="135" stroke="#490b58"/>
+            <line x1="30" y1="165" x2="680" y2="165" stroke="#C85070"/>
+          </g>
+          <g font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="700">
+            <text x="692" y="109" fill="#96324C">Bus de direcciones</text>
+            <text x="692" y="139" fill="#490b58">Bus de datos</text>
+            <text x="692" y="169" fill="#C85070">Bus de control</text>
+          </g>
+          <!-- CPU y memoria -->
+          <g font-family="Inter, Segoe UI, sans-serif" text-anchor="middle">
+            <rect x="90" y="12" width="170" height="56" rx="8" fill="#490b58"/>
+            <text x="175" y="36" fill="#fff" font-size="15" font-weight="700">CPU</text>
+            <text x="175" y="54" fill="#F5E8EE" font-size="11">UC · ALU · Registros</text>
+            <rect x="500" y="12" width="170" height="56" rx="8" fill="#691f35"/>
+            <text x="585" y="36" fill="#fff" font-size="15" font-weight="700">Memoria</text>
+            <text x="585" y="54" fill="#F5E8EE" font-size="11">Caché · RAM</text>
+          </g>
+          <!-- Conexiones CPU y memoria -->
+          <g stroke-width="2.5" stroke="#5C4850">
+            <line x1="125" y1="68" x2="125" y2="105"/><line x1="175" y1="68" x2="175" y2="135"/><line x1="225" y1="68" x2="225" y2="165"/>
+            <line x1="535" y1="68" x2="535" y2="105"/><line x1="585" y1="68" x2="585" y2="135"/><line x1="635" y1="68" x2="635" y2="165"/>
+            <line x1="335" y1="215" x2="335" y2="105"/><line x1="385" y1="215" x2="385" y2="135"/><line x1="435" y1="215" x2="435" y2="165"/>
+          </g>
+          <g fill="#1A1215">
+            <circle cx="125" cy="105" r="4.5"/><circle cx="175" cy="135" r="4.5"/><circle cx="225" cy="165" r="4.5"/>
+            <circle cx="535" cy="105" r="4.5"/><circle cx="585" cy="135" r="4.5"/><circle cx="635" cy="165" r="4.5"/>
+            <circle cx="335" cy="105" r="4.5"/><circle cx="385" cy="135" r="4.5"/><circle cx="435" cy="165" r="4.5"/>
+          </g>
+          <!-- Controladores E/S -->
+          <g font-family="Inter, Segoe UI, sans-serif" text-anchor="middle">
+            <rect x="300" y="215" width="170" height="48" rx="8" fill="#96324C"/>
+            <text x="385" y="236" fill="#fff" font-size="14" font-weight="700">Controladores E/S</text>
+            <text x="385" y="253" fill="#F5E8EE" font-size="11">puertos e interfaces</text>
+          </g>
+          <!-- Dispositivos -->
+          <g stroke="#8C7880" stroke-width="2" stroke-dasharray="4 3">
+            <line x1="155" y1="285" x2="350" y2="263"/><line x1="270" y1="285" x2="370" y2="263"/><line x1="385" y1="285" x2="385" y2="263"/><line x1="500" y1="285" x2="400" y2="263"/><line x1="615" y1="285" x2="420" y2="263"/>
+          </g>
+          <g font-family="Inter, Segoe UI, sans-serif" font-size="12" font-weight="600" text-anchor="middle">
+            <rect x="103" y="285" width="105" height="30" rx="15" fill="#fff" stroke="#490b58" stroke-width="2"/><text x="155" y="304" fill="#490b58">Teclado</text>
+            <rect x="218" y="285" width="105" height="30" rx="15" fill="#fff" stroke="#490b58" stroke-width="2"/><text x="270" y="304" fill="#490b58">Ratón</text>
+            <rect x="333" y="285" width="105" height="30" rx="15" fill="#F5E8EE" stroke="#490b58" stroke-width="2"/><text x="385" y="304" fill="#490b58">Pantalla táctil</text>
+            <rect x="448" y="285" width="105" height="30" rx="15" fill="#fff" stroke="#96324C" stroke-width="2"/><text x="500" y="304" fill="#96324C">Monitor</text>
+            <rect x="563" y="285" width="105" height="30" rx="15" fill="#fff" stroke="#96324C" stroke-width="2"/><text x="615" y="304" fill="#96324C">Impresora</text>
+          </g>
+        </svg>
+        <p class="map-caption">Los tres buses conectan CPU, memoria y controladores. Las puertas (dispositivos) se enlazan al sistema mediante sus controladores.</p>
+      </div>
+
+      <h3 style="font-family:var(--font-ui); font-size:1rem; color:var(--guinda); margin:1.6rem 0 .5rem;">Los tres buses en una tabla</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>Bus</th><th>¿Qué transporta?</th><th>Sentido</th><th>En la ciudad</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Direcciones</strong></td><td>La ubicación de la memoria o del dispositivo con el que el CPU quiere hablar.</td><td>Del CPU hacia la memoria y los dispositivos.</td><td>La placa con el nombre y el número de la calle.</td></tr>
+            <tr><td><strong>Datos</strong></td><td>La información misma: números, texto, instrucciones.</td><td>En ambos sentidos.</td><td>Los camiones que llevan y traen la carga.</td></tr>
+            <tr><td><strong>Control</strong></td><td>Señales que coordinan la operación: leer, escribir, interrupciones, reloj.</td><td>Según la señal, en ambos sentidos.</td><td>Los semáforos y los policías de tránsito.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout note"><p><strong>Dos palabras clave.</strong> El <em>controlador</em> es el traductor que está en cada puerta: convierte las señales del dispositivo en datos que el sistema entiende. El <em>driver</em> (controlador de software) es el manual que le explica al sistema operativo cómo hablar con ese dispositivo. Por eso, cuando conectas algo nuevo, a veces el sistema dice «instalando controlador».</p></div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 1 ══════════════ -->
+    <section class="section" id="e1">
+      <h2 class="section-title">Estación 1 · Aduana de dispositivos: ¿entra, sale o ambas?</h2>
+      <p>Eres la persona agente aduanal de la ciudad. Te llegarán 12 dispositivos, uno por uno. Decide por cuál puerta pasan: <strong>entrada</strong> (le llevan información a la computadora), <strong>salida</strong> (la computadora les entrega información) o <strong>entrada y salida</strong> (ocurre en los dos sentidos). Al responder verás por qué.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Aduana de dispositivos</span><span class="lab-tag" id="dvCount">Dispositivo 1 de 12</span></div>
+        <div class="lab-body">
+          <div class="dv-progress" aria-hidden="true"><div id="dvBar"></div></div>
+          <div class="dv-card">
+            <span class="dv-label">Llega a la aduana</span>
+            <span class="dv-name" id="dvName">—</span>
+            <span class="dv-hint" id="dvHint">&nbsp;</span>
+          </div>
+          <div class="dv-opts" role="group" aria-label="Clasifica el dispositivo">
+            <button class="dv-opt" type="button" data-t="in">Entrada<small>hacia la computadora</small></button>
+            <button class="dv-opt" type="button" data-t="out">Salida<small>desde la computadora</small></button>
+            <button class="dv-opt" type="button" data-t="io">Entrada y salida<small>en ambos sentidos</small></button>
+          </div>
+          <div class="dv-feedback" id="dvFeedback" aria-live="polite">Elige una opción para comenzar.</div>
+          <div class="stats" style="margin-top:.6rem;">
+            <div class="stat"><b id="dvScore">0</b><span>Aciertos</span></div>
+            <div class="stat"><b id="dvStreak">0</b><span>Racha actual</span></div>
+            <div class="stat"><b id="dvBest">0</b><span>Mejor racha</span></div>
+          </div>
+          <div class="btn-row" style="margin-top:1rem;">
+            <button class="btn" id="dvNext" type="button" disabled>Siguiente dispositivo</button>
+            <button class="btn ghost" id="dvRestart" type="button">Reiniciar</button>
+          </div>
+          <div class="callout note" id="dvSummary" style="display:none;"><p id="dvSummaryText"></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 2 ══════════════ -->
+    <section class="section" id="e2">
+      <h2 class="section-title">Estación 2 · Sigue el viaje de un dato</h2>
+      <p>Cada vez que haces algo tan sencillo como escribir una letra, tu acción pasa por varias etapas en una fracción de segundo. Aquí puedes verla en cámara lenta. Elige un escenario y avanza paso a paso, o dale a «Reproducir». Mixtle viajará con el dato.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Viaje de un dato en cámara lenta</span><span class="lab-tag">Elige un escenario</span></div>
+        <div class="lab-body">
+          <div class="btn-row" id="scBtns" role="group" aria-label="Escenarios" style="margin-bottom:1.2rem;"></div>
+          <div class="flow" id="flow"></div>
+          <div class="flow-track" id="track" aria-hidden="true"><div class="packet" id="packet"><img src="imagen1.png" alt=""></div></div>
+          <div class="flow-text" id="flowText" aria-live="polite"></div>
+          <div class="btn-row" style="margin-top:1rem;">
+            <button class="btn ghost" id="flPrev" type="button">Anterior</button>
+            <button class="btn" id="flNext" type="button">Siguiente paso</button>
+            <button class="btn ghost" id="flPlay" type="button">Reproducir</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mascot-tip">
+      <img src="imagen2.png" alt="Mascota Mixtle">
+      <div>
+        <span class="mascot-label">Dato curioso</span>
+        <p>La palabra «bus» viene del latín <em>omnibus</em>, que significa «para todos». Es la misma raíz del autobús: un camino compartido por el que pasan muchos pasajeros. En la computadora, el bus es un camino compartido por el que circulan datos de todos los componentes, y por eso necesita semáforos (el bus de control) para que nadie choque.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ ESTACIÓN 3 ══════════════ -->
+    <section class="section" id="e3">
+      <h2 class="section-title">Estación 3 · Explora los tres buses</h2>
+      <p>Primero verás cómo trabajan los tres buses al mismo tiempo en una operación de <strong>lectura</strong> o de <strong>escritura</strong> en memoria. Después, con la calculadora, descubrirás por qué «32 bits» o «64 bits» no es solo un número de mercadotecnia.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Los tres buses en acción</span><span class="lab-tag">Lectura y escritura</span></div>
+        <div class="lab-body">
+          <span class="lab-sub">Parte A · Una operación paso a paso</span>
+          <div class="btn-row" role="group" aria-label="Tipo de operación" style="margin-bottom:1rem;">
+            <button class="chip-btn active" type="button" id="opRead">Leer de la memoria</button>
+            <button class="chip-btn" type="button" id="opWrite">Escribir en la memoria</button>
+          </div>
+          <div class="lanes">
+            <div class="lane" id="laneA"><div class="ln-name">Bus de direcciones<small>«¿en qué calle?»</small></div><div class="ln-dir"><b aria-hidden="true">→</b>CPU a memoria</div><div class="ln-val" id="valA">en espera</div></div>
+            <div class="lane" id="laneC"><div class="ln-name">Bus de control<small>«¿leer o escribir?»</small></div><div class="ln-dir"><b aria-hidden="true">→</b>CPU a memoria</div><div class="ln-val" id="valC">en espera</div></div>
+            <div class="lane" id="laneD"><div class="ln-name">Bus de datos<small>«la carga»</small></div><div class="ln-dir"><b id="arrD" aria-hidden="true">←</b><span id="dirD">memoria a CPU</span></div><div class="ln-val" id="valD">en espera</div></div>
+          </div>
+          <div class="flow-text" id="busText" aria-live="polite"></div>
+          <div class="btn-row" style="margin-top:1rem;">
+            <button class="btn" id="busNext" type="button">Siguiente paso</button>
+            <button class="btn ghost" id="busReset" type="button">Repetir con otro dato</button>
+          </div>
+
+          <span class="lab-sub">Parte B · Calculadora de carreteras</span>
+          <p style="font-size:.95rem;">Cada <strong>bit</strong> del bus es un carril. Mueve los controles y observa cuánto crece la ciudad (bus de direcciones) y qué tan ancha es la autopista de carga (bus de datos).</p>
+          <div class="calc-grid">
+            <div class="field">
+              <label for="selAddr">Ancho del bus de direcciones</label>
+              <select id="selAddr">
+                <option value="8">8 bits</option>
+                <option value="16">16 bits</option>
+                <option value="20">20 bits</option>
+                <option value="32" selected>32 bits</option>
+                <option value="64">64 bits</option>
+              </select>
+              <div class="bits" id="bitsAddr" aria-hidden="true"></div>
+            </div>
+            <div class="field">
+              <label for="selData">Ancho del bus de datos</label>
+              <select id="selData">
+                <option value="8">8 bits</option>
+                <option value="16">16 bits</option>
+                <option value="32">32 bits</option>
+                <option value="64" selected>64 bits</option>
+              </select>
+              <div class="bits data" id="bitsData" aria-hidden="true"></div>
+            </div>
+            <div class="field">
+              <label for="rngFreq">Frecuencia del bus: <span id="freqTxt">1,600 MHz</span></label>
+              <input type="range" id="rngFreq" min="100" max="3200" step="100" value="1600">
+            </div>
+          </div>
+          <div class="calc-out" aria-live="polite">
+            <div class="out-box"><span class="ob-label">Direcciones distintas</span><span class="ob-value" id="outAddrs">—</span><span class="ob-note">Es 2 elevado al número de bits.</span></div>
+            <div class="out-box"><span class="ob-label">Memoria que puede identificar</span><span class="ob-value" id="outMem">—</span><span class="ob-note" id="outMemNote">&nbsp;</span></div>
+            <div class="out-box"><span class="ob-label">Ancho de banda ideal</span><span class="ob-value" id="outBw">—</span><span class="ob-note">Una transferencia por ciclo, sin pérdidas.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 4 ══════════════ -->
+    <section class="section" id="e4">
+      <h2 class="section-title">Estación 4 · Carrera de interfaces: ¿quién llega primero?</h2>
+      <p>Los puertos y las interfaces también son «carreteras», con distinta velocidad máxima. Elige un archivo y compite: ¿cuánto tardaría en copiarse por cada interfaz? La carrera está acelerada para que puedas verla; los tiempos reales aparecen al final.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Carrera de interfaces</span><span class="lab-tag">Valores máximos teóricos</span></div>
+        <div class="lab-body">
+          <span class="lab-sub">1 · Elige qué vas a copiar</span>
+          <div class="race-presets" role="group" aria-label="Archivos de ejemplo">
+            <button class="chip-btn" type="button" data-mb="5">Una foto · 5 MB</button>
+            <button class="chip-btn" type="button" data-mb="500">Un álbum de música · 500 MB</button>
+            <button class="chip-btn active" type="button" data-mb="4000">Una película en HD · 4 GB</button>
+            <button class="chip-btn" type="button" data-mb="50000">Un respaldo completo · 50 GB</button>
+          </div>
+          <div class="race-size">
+            <div class="field"><label for="raceSize">O escribe un tamaño</label><input type="number" id="raceSize" min="1" step="1" value="4"></div>
+            <div class="field"><label for="raceUnit">Unidad</label><select id="raceUnit"><option value="1">MB</option><option value="1000" selected>GB</option></select></div>
+          </div>
+          <span class="lab-sub">2 · Arranca la carrera</span>
+          <div class="btn-row" style="margin-bottom:.8rem;">
+            <button class="btn" id="raceGo" type="button">¡Arrancar carrera!</button>
+          </div>
+          <div id="raceRows"></div>
+          <div class="callout note" id="raceSummary" style="display:none;"><p id="raceSummaryText" aria-live="polite"></p></div>
+          <p class="text-muted" style="margin-top:.9rem;">Los valores son velocidades nominales máximas (1 MB = 1 millón de bytes). En la práctica el resultado depende también del dispositivo conectado, del cable y del sistema de archivos: una memoria USB económica no alcanza la velocidad máxima de un puerto rápido.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 5 ══════════════ -->
+    <section class="section" id="e5">
+      <h2 class="section-title">Estación 5 · Tu ficha de entrada y salida</h2>
+      <p>Ahora aplica lo aprendido a tu propio equipo. Marca los dispositivos y conexiones que tienes (mira los costados de tu laptop o escritorio, o la base de tu celular) y genera un resumen. Servirá como una parte de la <strong>ficha técnica de hardware</strong>, que es el producto de aprendizaje de la Unidad 1.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Ficha de E/S de mi equipo</span><span class="lab-tag">Se genera aquí, no se envía a ningún lado</span></div>
+        <div class="lab-body">
+          <div class="ficha-fields">
+            <div class="field"><label for="fEquipo">Mi equipo</label><input type="text" id="fEquipo" maxlength="40" placeholder="Ej. Laptop de trabajo, celular..."></div>
+            <div class="field">
+              <label for="fUsb">Versión de USB que creo tener</label>
+              <select id="fUsb">
+                <option value="no identificada">No lo sé</option>
+                <option value="USB 2.0 (hasta 480 Mb/s)">USB 2.0</option>
+                <option value="USB 3.x (desde 5 Gb/s)">USB 3.x</option>
+                <option value="USB4 / Thunderbolt (hasta 40 Gb/s)">USB4 o Thunderbolt</option>
+              </select>
+            </div>
+          </div>
+          <div class="chk-grid" id="chkGrid"></div>
+          <div class="btn-row" style="margin-top:1.1rem;">
+            <button class="btn" id="fGen" type="button">Generar mi ficha</button>
+            <span id="fMsg" style="font-size:.88rem; font-weight:600;" aria-live="polite"></span>
+          </div>
+          <div id="fOut" style="display:none; margin-top:1.2rem;">
+            <div class="stats">
+              <div class="stat"><b id="fIn">0</b><span>Entrada</span></div>
+              <div class="stat"><b id="fOutN">0</b><span>Salida</span></div>
+              <div class="stat"><b id="fIo">0</b><span>Entrada/salida</span></div>
+            </div>
+            <p id="fComment" style="font-size:.93rem; margin-top:.8rem;"></p>
+            <label for="fSummary" class="lab-sub" style="margin-top:.4rem;">Resumen para tu ficha técnica</label>
+            <textarea class="summary-box" id="fSummary" readonly></textarea>
+            <div class="btn-row" style="margin-top:.6rem;"><button class="btn ghost" id="fCopy" type="button">Copiar resumen</button><span id="fCopyMsg" style="font-size:.85rem;" aria-live="polite"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ AUTOEVALUACIÓN ══════════════ -->
+    <section class="section" id="quizSec">
+      <h2 class="section-title">Comprueba lo aprendido</h2>
+      <p>Cinco preguntas para saber qué tan claro quedó el tema. No se registra ninguna calificación: es solo para ti.</p>
+      <div id="quiz"></div>
+      <button class="btn" id="btnQuiz" type="button">Comprobar mis respuestas</button>
+      <div class="quiz-result" id="quizResult" aria-live="polite"></div>
+    </section>
+
+    <!-- ══════════════ CONCLUSIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Conclusión</h2>
+      <p>Los dispositivos de entrada, salida y entrada/salida son las puertas por las que la computadora recibe información del mundo y le devuelve resultados. Dentro del equipo, los tres buses (direcciones, datos y control) hacen posible que el CPU, la memoria y los controladores se coordinen: uno señala <em>a dónde</em>, otro transporta <em>qué</em> y el tercero decide <em>cuándo y cómo</em>.</p>
+      <p>Ahora sabes que el ancho de un bus limita cuánta memoria puede identificar el procesador, y que la velocidad de una interfaz determina cuánto tarda una copia, un respaldo o una transmisión. Con este tema completas el recorrido de la Unidad 1: del CPU a la memoria y de la memoria al mundo exterior. En las siguientes sesiones integrarás todo en tu ficha técnica de hardware y daremos el salto al software con la Unidad 2.</p>
+    </section>
+
+    <!-- ══════════════ REFERENCIAS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Referencias bibliográficas</h2>
+      <p class="text-sm">Stallings, W. (2025). <em>Organización y arquitectura de computadoras</em> (11.ª ed.). Pearson Educación.</p>
+      <p class="text-sm">Patterson, D. A., y Hennessy, J. L. (2021). <em>Computer Organization and Design RISC-V Edition: The Hardware/Software Interface</em> (2.ª ed.). Morgan Kaufmann.</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Unidad 1 · Tema 1.4</span>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  function $(id) { return document.getElementById(id); }
+  function fmt(n, d) { return n.toLocaleString('en-US', { maximumFractionDigits: d === undefined ? 0 : d }); }
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ═════════ Estación 1 · Aduana de dispositivos ═════════ */
+  var ITEMS = [
+    { n: 'Teclado', t: 'in', why: 'Solo envía información al equipo: cada tecla que presionas es un dato de entrada.' },
+    { n: 'Ratón', t: 'in', why: 'Informa al equipo hacia dónde lo mueves y cuándo haces clic. No recibe nada de la computadora.' },
+    { n: 'Micrófono', t: 'in', why: 'Convierte el sonido en señales digitales que entran a la computadora.' },
+    { n: 'Escáner', t: 'in', why: 'Lee un documento físico y lo entrega al equipo como imagen digital.' },
+    { n: 'Monitor', t: 'out', why: 'Recibe imágenes de la computadora y las muestra. Tú ves el resultado, pero el monitor no le envía datos al CPU.' },
+    { n: 'Impresora (solo imprime)', t: 'out', why: 'Recibe un documento del equipo y lo pasa al papel: es de salida pura.' },
+    { n: 'Bocinas', t: 'out', why: 'Reciben audio digital y lo convierten en sonido.' },
+    { n: 'Proyector', t: 'out', why: 'Toma la imagen de la computadora y la proyecta en una pared o pantalla.' },
+    { n: 'Pantalla táctil', t: 'io', why: 'Muestra imágenes (salida) y detecta tus dedos (entrada). Trabaja en los dos sentidos.' },
+    { n: 'Memoria USB', t: 'io', why: 'Puedes leer archivos de ella (entrada) y guardar archivos en ella (salida).' },
+    { n: 'Tarjeta de red (Wi-Fi o Ethernet)', t: 'io', why: 'Recibe datos de la red y también los envía. Sin ambos sentidos no habría conversación.' },
+    { n: 'Diadema con micrófono', t: 'io', why: 'Los audífonos reproducen sonido (salida) y el micrófono lo captura (entrada).' }
+  ];
+  var TYPE_NAME = { in: 'entrada', out: 'salida', io: 'entrada y salida' };
+  var dvQueue = [], dvIdx = 0, dvScore = 0, dvStreak = 0, dvBest = 0, dvLocked = false;
+  var dvOpts = document.querySelectorAll('.dv-opt');
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function dvStats() {
+    $('dvScore').textContent = dvScore; $('dvStreak').textContent = dvStreak; $('dvBest').textContent = dvBest;
+  }
+  function dvShow() {
+    var it = dvQueue[dvIdx];
+    $('dvName').textContent = it.n;
+    $('dvHint').innerHTML = '&nbsp;';
+    $('dvCount').textContent = 'Dispositivo ' + (dvIdx + 1) + ' de ' + dvQueue.length;
+    $('dvBar').style.width = (dvIdx / dvQueue.length * 100) + '%';
+    $('dvFeedback').className = 'dv-feedback';
+    $('dvFeedback').textContent = '¿Por qué puerta pasa?';
+    dvOpts.forEach(function (b) { b.disabled = false; b.classList.remove('good', 'bad'); });
+    $('dvNext').disabled = true; dvLocked = false;
+  }
+  function dvStart() {
+    dvQueue = shuffle(ITEMS); dvIdx = 0; dvScore = 0; dvStreak = 0; dvBest = 0;
+    $('dvSummary').style.display = 'none';
+    $('dvNext').textContent = 'Siguiente dispositivo';
+    dvStats(); dvShow();
+  }
+  dvOpts.forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (dvLocked) return;
+      dvLocked = true;
+      var it = dvQueue[dvIdx], pick = b.getAttribute('data-t'), ok = pick === it.t;
+      dvOpts.forEach(function (x) {
+        x.disabled = true;
+        if (x.getAttribute('data-t') === it.t) x.classList.add('good');
+      });
+      if (!ok) b.classList.add('bad');
+      if (ok) { dvScore++; dvStreak++; if (dvStreak > dvBest) dvBest = dvStreak; } else { dvStreak = 0; }
+      $('dvFeedback').className = 'dv-feedback ' + (ok ? 'ok' : 'bad');
+      $('dvFeedback').textContent = (ok ? 'Correcto. ' : 'No exactamente: es de ' + TYPE_NAME[it.t] + '. ') + it.why;
+      dvStats();
+      $('dvBar').style.width = ((dvIdx + 1) / dvQueue.length * 100) + '%';
+      $('dvNext').disabled = false;
+      if (dvIdx === dvQueue.length - 1) $('dvNext').textContent = 'Ver resultado';
+    });
+  });
+  $('dvNext').addEventListener('click', function () {
+    if (dvIdx < dvQueue.length - 1) { dvIdx++; dvShow(); return; }
+    var total = dvQueue.length, pct = Math.round(dvScore / total * 100);
+    var msg = dvScore === total ? 'Aduana perfecta.' : (pct >= 70 ? 'Muy buen trabajo.' : 'Vale la pena repasar los ejemplos que fallaste.');
+    $('dvSummaryText').innerHTML = '<strong>Resultado:</strong> ' + dvScore + ' de ' + total + ' (' + pct + ' %). Tu mejor racha fue de ' + dvBest + '. ' + msg +
+      ' Recuerda la regla de oro: pregúntate si la información <em>va hacia</em> la computadora, <em>sale de</em> ella o hace ambas cosas.';
+    $('dvSummary').style.display = 'block';
+    $('dvNext').disabled = true;
+  });
+  $('dvRestart').addEventListener('click', dvStart);
+  dvStart();
+
+  /* ═════════ Estación 2 · Viaje de un dato ═════════ */
+  var ROLES = ['Entrada', 'Interfaz', 'Buses', 'Procesamiento', 'Salida'];
+  var SCEN = [
+    { name: 'Escribo una letra', nodes: ['Teclado', 'Controlador USB', 'Buses del sistema', 'CPU + RAM', 'Monitor'], steps: [
+      ['Presionas la tecla A', 'Al pulsar la tecla se cierra un contacto eléctrico. El teclado identifica cuál fue y genera un código para esa tecla.'],
+      ['El controlador avisa al CPU', 'El controlador convierte la señal en datos digitales y levanta la mano con una <strong>interrupción</strong>: «tengo algo para ti». Es como el timbre de la puerta.'],
+      ['El dato viaja por los buses', 'El bus de <strong>direcciones</strong> indica a dónde va el dato, el bus de <strong>datos</strong> lo transporta y el bus de <strong>control</strong> coordina el momento exacto.'],
+      ['El CPU lo procesa', 'El procesador ejecuta el programa (por ejemplo, tu editor de texto), guarda la letra en la RAM y decide qué hay que dibujar en pantalla.'],
+      ['La letra aparece en el monitor', 'La imagen actualizada se envía al monitor por el controlador de video (HDMI o DisplayPort) y ves la letra. Todo esto ocurrió en unas milésimas de segundo.']
+    ] },
+    { name: 'Imprimo un documento', nodes: ['Ratón (clic en Imprimir)', 'Controlador de impresión', 'Buses del sistema', 'CPU + RAM', 'Impresora'], steps: [
+      ['Haces clic en «Imprimir»', 'El ratón envía la posición y el clic. El sistema operativo reconoce que pulsaste el botón y le pide al programa que prepare el documento.'],
+      ['Se activa la interfaz de impresión', 'El sistema usa el controlador (driver) de tu impresora para saber qué «idioma» entiende y por qué conexión debe enviarle los datos (USB, Wi-Fi o red).'],
+      ['Los datos salen por los buses', 'Las páginas preparadas viajan de la RAM hacia el controlador de la interfaz. El bus de control cuida que la impresora esté lista para recibir.'],
+      ['El CPU prepara las páginas', 'El procesador convierte tu documento en instrucciones de impresión y las guarda en una cola de espera (spooler) en la RAM, para que puedas seguir trabajando.'],
+      ['La impresora imprime', 'La impresora recibe los datos poco a poco y los convierte en tinta o tóner sobre el papel. La información de salida se volvió algo físico.']
+    ] },
+    { name: 'Toco la pantalla del celular', nodes: ['Sensor táctil', 'Controlador táctil', 'Buses del sistema', 'CPU + RAM', 'Pantalla'], steps: [
+      ['Tu dedo toca la pantalla', 'Una malla de sensores detecta el cambio eléctrico que provoca tu dedo y calcula en qué punto exacto lo tocaste. Esta es la parte de <strong>entrada</strong>.'],
+      ['El controlador táctil traduce', 'Un pequeño chip convierte la señal en coordenadas (por ejemplo, «x = 120, y = 540») y avisa con una interrupción.'],
+      ['Las coordenadas viajan por los buses', 'Los datos van del controlador hacia el CPU. Es un mensaje muy corto, por eso llega prácticamente al instante.'],
+      ['El sistema decide qué hacer', 'El CPU, con ayuda del sistema operativo, determina qué elemento de la pantalla estaba en esas coordenadas: un botón, un icono, una letra del teclado.'],
+      ['La misma pantalla responde', 'La pantalla recibe la nueva imagen y la muestra. Fue entrada y salida en el mismo dispositivo: por eso es de tipo <strong>E/S</strong>.']
+    ] },
+    { name: 'Guardo un archivo en una USB', nodes: ['Teclado (Ctrl + G)', 'Controlador USB', 'Buses del sistema', 'CPU + RAM', 'Memoria USB'], steps: [
+      ['Pides guardar el archivo', 'Con un atajo de teclado o un clic le pides al programa que guarde tu trabajo en la memoria USB conectada.'],
+      ['El controlador USB se prepara', 'El controlador abre la comunicación con la memoria USB. Gracias al driver y al sistema de archivos, el equipo sabe cómo escribir en ella.'],
+      ['El archivo sale de la RAM', 'Tu archivo, que estaba en la RAM, viaja por el bus de datos hacia el controlador. El bus de direcciones indica en qué parte debe guardarse.'],
+      ['El CPU supervisa la copia', 'El procesador coordina que los datos salgan completos y en orden, y comprueba que la memoria USB confirme la recepción.'],
+      ['La memoria USB lo almacena', 'La memoria flash de la USB guarda el contenido. Ahora puedes desconectarla y llevarte el archivo contigo. Esa memoria funcionó como dispositivo de <strong>salida</strong> al guardar y de <strong>entrada</strong> al abrir.']
+    ] }
+  ];
+  var sc = 0, st = 0, playTimer = null;
+  var flow = $('flow'), nodeEls = [];
+  for (var i = 0; i < 5; i++) {
+    (function (i) {
+      var d = document.createElement('div');
+      d.className = 'node';
+      d.innerHTML = '<span class="node-role">' + (i + 1) + ' · ' + ROLES[i] + '</span><span class="node-name"></span>';
+      flow.appendChild(d); nodeEls.push(d);
+      var s = document.createElement('div');
+      s.className = 'flow-stop'; s.style.left = (10 + i * 20) + '%';
+      $('track').insertBefore(s, $('packet'));
+    })(i);
+  }
+  function stopPlay() {
+    if (playTimer) { clearInterval(playTimer); playTimer = null; }
+    $('flPlay').textContent = 'Reproducir';
+  }
+  function renderFlow() {
+    var S = SCEN[sc];
+    nodeEls.forEach(function (n, i) {
+      n.querySelector('.node-name').textContent = S.nodes[i];
+      n.classList.toggle('active', i === st);
+      n.classList.toggle('passed', i < st);
+    });
+    $('packet').style.left = (10 + st * 20) + '%';
+    $('flowText').innerHTML = '<h3>Paso ' + (st + 1) + ' de 5 · ' + S.steps[st][0] + '</h3><p>' + S.steps[st][1] + '</p>';
+    $('flPrev').disabled = st === 0;
+    $('flNext').disabled = st === 4;
+  }
+  var scBtns = $('scBtns');
+  SCEN.forEach(function (s, idx) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip-btn' + (idx === 0 ? ' active' : ''); b.textContent = s.name;
+    b.addEventListener('click', function () {
+      stopPlay(); sc = idx; st = 0;
+      Array.prototype.forEach.call(scBtns.children, function (x, k) { x.classList.toggle('active', k === idx); });
+      renderFlow();
+    });
+    scBtns.appendChild(b);
+  });
+  $('flNext').addEventListener('click', function () { stopPlay(); if (st < 4) { st++; renderFlow(); } });
+  $('flPrev').addEventListener('click', function () { stopPlay(); if (st > 0) { st--; renderFlow(); } });
+  $('flPlay').addEventListener('click', function () {
+    if (playTimer) { stopPlay(); return; }
+    if (st === 4) { st = 0; renderFlow(); }
+    $('flPlay').textContent = 'Pausar';
+    playTimer = setInterval(function () {
+      if (st < 4) { st++; renderFlow(); }
+      if (st >= 4) stopPlay();
+    }, 2600);
+  });
+  renderFlow();
+
+  /* ═════════ Estación 3A · Los tres buses en acción ═════════ */
+  var ADDRS = ['0x00A4', '0x1F30', '0x3C08', '0x7B52', '0x9D10'];
+  var DATAS = ['0x2A', '0x7F', '0xC3', '0x15', '0xE8'];
+  var op = 'read', busStep = 0, busAddr = '', busData = '';
+  var laneA = $('laneA'), laneC = $('laneC'), laneD = $('laneD');
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function renderBus() {
+    var isRead = op === 'read';
+    laneA.classList.toggle('on', busStep === 1);
+    laneC.classList.toggle('on', busStep === 2);
+    laneD.classList.toggle('on', busStep === 3);
+    $('valA').textContent = busStep >= 1 ? busAddr : 'en espera';
+    $('valC').textContent = busStep >= 2 ? (isRead ? 'LECTURA (READ)' : 'ESCRITURA (WRITE)') : 'en espera';
+    $('valD').textContent = busStep >= 3 ? busData : 'en espera';
+    $('arrD').textContent = isRead ? '←' : '→';
+    $('dirD').textContent = isRead ? 'memoria a CPU' : 'CPU a memoria';
+    var texts = [
+      ['Listo para empezar', 'Elige si el CPU va a <strong>leer</strong> o a <strong>escribir</strong>, y pulsa «Siguiente paso». Los tres buses están libres.'],
+      ['Paso 1 · El CPU dice dónde', 'El CPU coloca la dirección <strong>' + busAddr + '</strong> en el bus de direcciones: «quiero hablar con esta ubicación de la memoria». Es como indicar la calle y el número de una casa.'],
+      ['Paso 2 · El CPU dice qué quiere hacer', 'En el bus de control se activa la señal <strong>' + (isRead ? 'READ' : 'WRITE') + '</strong>. Es el semáforo que avisa a la memoria si debe ' + (isRead ? 'entregar un dato' : 'recibir y guardar un dato') + '.'],
+      ['Paso 3 · Viaja el dato', isRead
+        ? 'La memoria busca lo que hay en <strong>' + busAddr + '</strong> y coloca el dato <strong>' + busData + '</strong> en el bus de datos. El camión viaja <strong>hacia el CPU</strong>.'
+        : 'El CPU coloca el dato <strong>' + busData + '</strong> en el bus de datos. El camión viaja <strong>hacia la memoria</strong>, que lo guarda en <strong>' + busAddr + '</strong>.'],
+      ['Paso 4 · Operación completa', 'Las señales de control confirman que todo terminó y los tres buses quedan libres para la siguiente operación. Esto sucede miles de millones de veces por segundo.']
+    ];
+    var t = texts[busStep];
+    $('busText').innerHTML = '<h3>' + t[0] + '</h3><p>' + t[1] + '</p>';
+    $('busNext').disabled = busStep >= 4;
+  }
+  function busRestart(newData) {
+    busStep = 0;
+    if (newData) { busAddr = pick(ADDRS); busData = pick(DATAS); }
+    renderBus();
+  }
+  $('opRead').addEventListener('click', function () { op = 'read'; $('opRead').classList.add('active'); $('opWrite').classList.remove('active'); busRestart(false); });
+  $('opWrite').addEventListener('click', function () { op = 'write'; $('opWrite').classList.add('active'); $('opRead').classList.remove('active'); busRestart(false); });
+  $('busNext').addEventListener('click', function () { if (busStep < 4) { busStep++; renderBus(); } });
+  $('busReset').addEventListener('click', function () { busRestart(true); });
+  busAddr = pick(ADDRS); busData = pick(DATAS); renderBus();
+
+  /* ═════════ Estación 3B · Calculadora de buses ═════════ */
+  var UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'];
+  var ADDR_NOTES = {
+    8: 'Menos que un mensaje de texto largo.',
+    16: 'La memoria de las microcomputadoras de principios de los años 80, como la Commodore 64.',
+    20: 'El límite de los procesadores 8086 de los primeros PC de IBM.',
+    32: 'El límite de los sistemas de 32 bits: por eso no aprovechaban más de 4 GB de RAM.',
+    64: 'En teoría es enorme; en la práctica, los equipos actuales usan menos líneas de dirección.'
+  };
+  function memStr(n) { return Math.pow(2, n % 10) + ' ' + UNITS[Math.floor(n / 10)]; }
+  function drawBits(el, n) {
+    el.innerHTML = '';
+    for (var i = 0; i < n; i++) el.appendChild(document.createElement('i'));
+  }
+  function calc() {
+    var a = parseInt($('selAddr').value, 10), d = parseInt($('selData').value, 10), f = parseInt($('rngFreq').value, 10);
+    $('freqTxt').textContent = fmt(f) + ' MHz';
+    drawBits($('bitsAddr'), a); drawBits($('bitsData'), d);
+    var count = (typeof BigInt === 'function') ? (BigInt(2) ** BigInt(a)).toLocaleString('en-US') : fmt(Math.pow(2, a));
+    $('outAddrs').textContent = count;
+    $('outMem').textContent = memStr(a);
+    $('outMemNote').textContent = ADDR_NOTES[a] || '';
+    var mbs = (d / 8) * f;
+    $('outBw').textContent = mbs >= 1000 ? fmt(mbs / 1000, 1) + ' GB/s' : fmt(mbs) + ' MB/s';
+  }
+  $('selAddr').addEventListener('change', calc);
+  $('selData').addEventListener('change', calc);
+  $('rngFreq').addEventListener('input', calc);
+  calc();
+
+  /* ═════════ Estación 4 · Carrera de interfaces ═════════ */
+  var IFACES = [
+    { n: 'USB 2.0', g: 0.48, sub: '480 Mb/s' },
+    { n: 'Ethernet Gigabit', g: 1, sub: '1 Gb/s' },
+    { n: 'USB 3.2 Gen 1 (USB 3.0)', g: 5, sub: '5 Gb/s' },
+    { n: 'SATA III', g: 6, sub: '6 Gb/s' },
+    { n: 'USB 3.2 Gen 2', g: 10, sub: '10 Gb/s' },
+    { n: 'USB4 / Thunderbolt 4', g: 40, sub: '40 Gb/s' }
+  ];
+  var raceMB = 4000, raceBusy = false, raceTimer = null;
+  var raceRows = $('raceRows'), fillEls = [], timeEls = [];
+  IFACES.forEach(function (it) {
+    var row = document.createElement('div');
+    row.className = 'race-row';
+    row.innerHTML = '<div class="race-name">' + it.n + '<small>' + it.sub + ' (máx. teórico)</small></div>' +
+      '<div class="race-track"><div class="race-fill"></div></div><div class="race-time">—</div>';
+    raceRows.appendChild(row);
+    fillEls.push(row.querySelector('.race-fill')); timeEls.push(row.querySelector('.race-time'));
+  });
+  function fmtTime(s) {
+    if (s < 0.001) return 'menos de 1 ms';
+    if (s < 1) return fmt(s * 1000) + ' ms';
+    if (s < 60) return fmt(s, 1) + ' s';
+    if (s < 3600) { var m = Math.floor(s / 60); return m + ' min ' + Math.round(s - m * 60) + ' s'; }
+    var h = Math.floor(s / 3600); return h + ' h ' + Math.round((s - h * 3600) / 60) + ' min';
+  }
+  function secondsFor(it) { return (raceMB * 8 / 1000) / it.g; } /* MB → Gb, luego dividir entre Gb/s */
+  function raceReset() {
+    if (raceTimer) { clearTimeout(raceTimer); raceTimer = null; }
+    raceBusy = false; $('raceGo').disabled = false;
+    fillEls.forEach(function (f) { f.classList.remove('run'); f.style.width = '0'; });
+    timeEls.forEach(function (t) { t.textContent = '—'; t.classList.remove('race-winner'); });
+    $('raceSummary').style.display = 'none';
+  }
+  function setSize(mb) {
+    raceMB = mb;
+    var big = mb >= 1000;
+    $('raceUnit').value = big ? '1000' : '1';
+    $('raceSize').value = big ? mb / 1000 : mb;
+    raceReset();
+  }
+  document.querySelectorAll('.race-presets .chip-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.race-presets .chip-btn').forEach(function (x) { x.classList.toggle('active', x === b); });
+      setSize(parseFloat(b.getAttribute('data-mb')));
+    });
+  });
+  function manualSize() {
+    var v = parseFloat($('raceSize').value);
+    if (!(v > 0)) return;
+    raceMB = v * parseFloat($('raceUnit').value);
+    document.querySelectorAll('.race-presets .chip-btn').forEach(function (x) { x.classList.toggle('active', parseFloat(x.getAttribute('data-mb')) === raceMB); });
+    raceReset();
+  }
+  $('raceSize').addEventListener('input', manualSize);
+  $('raceUnit').addEventListener('change', manualSize);
+  $('raceGo').addEventListener('click', function () {
+    if (raceBusy) return;
+    if (!(raceMB > 0)) { $('raceSummaryText').textContent = 'Escribe un tamaño mayor que cero.'; $('raceSummary').style.display = 'block'; return; }
+    raceReset(); raceBusy = true; $('raceGo').disabled = true;
+    var times = IFACES.map(secondsFor), fast = Math.min.apply(null, times);
+    void raceRows.offsetWidth;
+    fillEls.forEach(function (f, i) {
+      f.classList.add('run');
+      f.style.width = Math.max(2, fast / times[i] * 100) + '%';
+    });
+    raceTimer = setTimeout(function () {
+      raceBusy = false; $('raceGo').disabled = false;
+      times.forEach(function (t, i) { timeEls[i].textContent = fmtTime(t); if (t === fast) timeEls[i].classList.add('race-winner'); });
+      var slow = Math.max.apply(null, times);
+      var slowPct = fast / slow * 100;
+      var fi = times.indexOf(fast), si = times.indexOf(slow);
+      $('raceSummaryText').innerHTML = '<strong>' + IFACES[fi].n + '</strong> terminó primero en <strong>' + fmtTime(fast) + '</strong>. Para ese momento, <strong>' + IFACES[si].n +
+        '</strong> apenas llevaba el ' + (slowPct < 1 ? 'menos de 1' : fmt(slowPct, 0)) + ' % y necesitaría <strong>' + fmtTime(slow) + '</strong> en total. ' +
+        'Mismo archivo, misma computadora: la diferencia está en el ancho y la velocidad del camino.';
+      $('raceSummary').style.display = 'block';
+    }, reduceMotion ? 50 : 3100);
+  });
+
+  /* ═════════ Estación 5 · Ficha de E/S ═════════ */
+  var GROUPS = [
+    { key: 'in', title: 'Dispositivos de entrada', items: ['Teclado', 'Ratón o touchpad', 'Micrófono', 'Cámara web', 'Escáner'] },
+    { key: 'out', title: 'Dispositivos de salida', items: ['Monitor o pantalla', 'Bocinas', 'Impresora', 'Proyector'] },
+    { key: 'io', title: 'Entrada y salida', items: ['Pantalla táctil', 'Memoria USB o disco externo', 'Lector de tarjetas SD', 'Diadema con micrófono'] },
+    { key: 'port', title: 'Puertos y conexiones', items: ['USB-A', 'USB-C', 'HDMI', 'DisplayPort', 'Entrada/salida de audio de 3.5 mm', 'Ethernet (RJ-45)', 'Wi-Fi', 'Bluetooth'] }
+  ];
+  var grid = $('chkGrid');
+  GROUPS.forEach(function (g) {
+    var box = document.createElement('div'); box.className = 'chk-group';
+    var h = document.createElement('h4'); h.textContent = g.title; box.appendChild(h);
+    g.items.forEach(function (it, k) {
+      var lab = document.createElement('label');
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.setAttribute('data-g', g.key); cb.value = it;
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(' ' + it)); box.appendChild(lab);
+    });
+    grid.appendChild(box);
+  });
+  grid.style.gridTemplateColumns = '';
+  $('fGen').addEventListener('click', function () {
+    var by = { in: [], out: [], io: [], port: [] };
+    grid.querySelectorAll('input:checked').forEach(function (c) { by[c.getAttribute('data-g')].push(c.value); });
+    var total = by.in.length + by.out.length + by.io.length + by.port.length;
+    if (!total) { $('fMsg').style.color = '#a12b2b'; $('fMsg').textContent = 'Marca al menos un dispositivo o conexión.'; return; }
+    $('fMsg').textContent = '';
+    var equipo = $('fEquipo').value.trim() || 'Mi equipo';
+    function line(label, arr) { return label + ': ' + (arr.length ? arr.join(', ') : 'ninguno marcado'); }
+    var txt = 'FICHA DE ENTRADA Y SALIDA — ' + equipo + '\n' +
+      line('Entrada', by.in) + '\n' + line('Salida', by.out) + '\n' + line('Entrada y salida', by.io) + '\n' +
+      line('Puertos y conexiones', by.port) + '\n' +
+      'Versión de USB: ' + $('fUsb').value + '\n' +
+      'Total: ' + by.in.length + ' de entrada, ' + by.out.length + ' de salida, ' + by.io.length + ' de entrada/salida y ' + by.port.length + ' puertos o conexiones.';
+    $('fIn').textContent = by.in.length; $('fOutN').textContent = by.out.length; $('fIo').textContent = by.io.length;
+    var com = [];
+    if (by.in.length > by.out.length + by.io.length) com.push('Tu equipo tiene muchas «puertas de entrada»: puede recibir mucha información.');
+    if (by.port.indexOf('USB-C') !== -1) com.push('El USB-C es un conector reversible; según el equipo, puede transportar datos, video y energía.');
+    if (by.port.indexOf('Wi-Fi') !== -1 || by.port.indexOf('Bluetooth') !== -1 || by.port.indexOf('Ethernet (RJ-45)') !== -1) com.push('Wi-Fi, Bluetooth y Ethernet son dispositivos de entrada y salida: reciben y envían datos.');
+    if (!com.length) com.push('Completa tu ficha con las demás conexiones de tu equipo cuando las identifiques.');
+    $('fComment').textContent = com.join(' ');
+    $('fSummary').value = txt;
+    $('fOut').style.display = 'block';
+  });
+  $('fCopy').addEventListener('click', function () {
+    var box = $('fSummary'), msg = $('fCopyMsg');
+    function ok() { msg.style.color = '#1e6b3a'; msg.textContent = 'Resumen copiado.'; }
+    function fail() { msg.style.color = '#a12b2b'; msg.textContent = 'Selecciona el texto y cópialo manualmente.'; }
+    function old() { try { box.focus(); box.select(); document.execCommand('copy') ? ok() : fail(); } catch (e) { fail(); } }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(box.value).then(ok, old); } else { old(); }
+  });
+
+  /* ═════════ Autoevaluación ═════════ */
+  var QUIZ = [
+    { q: '¿Cuál de los siguientes dispositivos es de entrada y salida a la vez?', o: ['Teclado', 'Pantalla táctil', 'Bocinas'], a: 1,
+      e: 'La pantalla táctil muestra imágenes (salida) y detecta tus dedos (entrada). El teclado es solo de entrada y las bocinas solo de salida.' },
+    { q: '¿Qué bus indica la ubicación de memoria o el dispositivo con el que el CPU quiere comunicarse?', o: ['Bus de datos', 'Bus de direcciones', 'Bus de control'], a: 1,
+      e: 'El bus de direcciones es la «placa de la calle»: señala el lugar. El de datos transporta la información y el de control coordina la operación.' },
+    { q: 'Si un bus de direcciones tiene 16 bits, ¿cuántas direcciones distintas puede identificar?', o: ['16 direcciones', '256 direcciones', '65,536 direcciones'], a: 2,
+      e: 'Con n bits se forman 2ⁿ combinaciones. Como 2¹⁶ = 65,536, el bus identifica 65,536 direcciones (equivalentes a 64 KB si cada una apunta a un byte).' },
+    { q: 'En la analogía de la ciudad, ¿a qué equivale el bus de control?', o: ['A los camiones de carga', 'A los nombres de las calles', 'A los semáforos y los policías de tránsito'], a: 2,
+      e: 'El bus de control transporta las señales que coordinan la operación (leer, escribir, interrupciones, reloj), igual que los semáforos ordenan el tránsito.' },
+    { q: '¿Por qué una memoria USB 3.0 copia archivos más rápido que una USB 2.0 (con un dispositivo y un puerto compatibles)?', o: ['Su interfaz transfiere datos a mayor velocidad: 5 Gb/s frente a 480 Mb/s teóricos', 'Porque guarda archivos más pequeños', 'Porque no necesita usar el bus de datos'], a: 0,
+      e: 'La interfaz USB 3.0 es una «carretera» con mucha más capacidad. Todos los archivos viajan por buses y la velocidad depende del ancho de esa vía.' }
+  ];
+  var quiz = $('quiz');
+  QUIZ.forEach(function (it, qi) {
+    var box = document.createElement('div'); box.className = 'q'; box.id = 'q' + qi;
+    var html = '<div class="q-text">' + (qi + 1) + '. ' + it.q + '</div>';
+    it.o.forEach(function (op, oi) {
+      html += '<label><input type="radio" name="qq' + qi + '" value="' + oi + '"> ' + op + '</label>';
+    });
+    html += '<div class="q-expl"><strong>Explicación:</strong> ' + it.e + '</div>';
+    box.innerHTML = html; quiz.appendChild(box);
+  });
+  $('btnQuiz').addEventListener('click', function () {
+    var right = 0, answered = 0;
+    QUIZ.forEach(function (it, qi) {
+      var box = $('q' + qi), sel = box.querySelector('input:checked');
+      box.classList.remove('right', 'wrong', 'shown');
+      box.querySelectorAll('label').forEach(function (l) { l.classList.remove('chosen'); });
+      if (!sel) return;
+      answered++;
+      sel.parentNode.classList.add('chosen');
+      var ok = parseInt(sel.value, 10) === it.a;
+      if (ok) right++;
+      box.classList.add(ok ? 'right' : 'wrong', 'shown');
+    });
+    var r = $('quizResult');
+    if (answered < QUIZ.length) { r.textContent = 'Responde las ' + QUIZ.length + ' preguntas para ver tu resultado (te faltan ' + (QUIZ.length - answered) + ').'; return; }
+    r.textContent = 'Resultado: ' + right + ' de ' + QUIZ.length + '. ' + (right === QUIZ.length ? 'Excelente: dominas el tema.' : (right >= 3 ? 'Vas muy bien. Lee las explicaciones de las que fallaste.' : 'Regresa a las estaciones y vuelve a intentarlo.'));
+  });
+})();
+</script>
+
+</body>
+</html>
