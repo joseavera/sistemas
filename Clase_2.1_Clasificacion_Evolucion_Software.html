@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 2.1 — Clasificación y evolución del software</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .mascot-tip {
+    display: flex; align-items: center; gap: 1.4rem;
+    background: var(--guinda-light); border: 1px solid #D8A8BA;
+    border-radius: var(--radius-lg); padding: 1.3rem 1.6rem; margin: 1.75rem 0;
+  }
+  .mascot-tip img { width: 82px; height: auto; flex-shrink: 0; }
+  .mascot-tip .mascot-label {
+    font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--guinda); font-weight: 700; display: block; margin-bottom: .3rem;
+  }
+  .mascot-tip p { font-size: .95rem; margin-bottom: 0; }
+  @media (max-width: 520px) { .mascot-tip { flex-direction: column; text-align: center; } }
+
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid; grid-template-columns: 190px 1fr; gap: .5rem;
+    padding: .5rem 0; border-bottom: 1px dashed var(--border); font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600;
+  }
+  @media (max-width: 560px) { .info-list li { grid-template-columns: 1fr; gap: .15rem; } }
+
+  /* Ruta de la clase */
+  .route { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6rem; margin: 1.25rem 0 0; counter-reset: stop; }
+  @media (max-width: 760px) { .route { grid-template-columns: 1fr 1fr; } }
+  .route a {
+    display: block; text-decoration: none; text-align: center;
+    background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: .7rem .5rem; font-family: var(--font-ui); font-size: .78rem; font-weight: 600; color: var(--ink);
+    transition: border-color .15s, transform .15s;
+  }
+  .route a:hover { border-color: var(--guinda); transform: translateY(-2px); text-decoration: none; color: var(--guinda); }
+  .route a::before {
+    counter-increment: stop; content: counter(stop);
+    display: block; width: 24px; height: 24px; line-height: 24px; margin: 0 auto .35rem;
+    border-radius: 50%; background: var(--guinda); color: var(--white); font-size: .72rem; font-weight: 700;
+  }
+
+  /* Contenedor de laboratorios */
+  .lab {
+    border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+    margin: 1.5rem 0; box-shadow: var(--shadow-sm); background: var(--off-white);
+  }
+  .lab-header {
+    background: var(--guinda); color: var(--white); padding: .7rem 1.4rem;
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; letter-spacing: .04em;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .lab-header .lab-tag { font-weight: 500; opacity: .8; text-transform: uppercase; font-size: .72rem; letter-spacing: .1em; }
+  .lab-body { padding: 1.3rem 1.5rem; }
+  .lab-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); font-weight: 700; display: block; margin: 1.4rem 0 .6rem; }
+  .lab-sub:first-child { margin-top: 0; }
+
+  .btn {
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; cursor: pointer;
+    background: var(--guinda); color: var(--white); border: 2px solid var(--guinda);
+    padding: .55rem 1.1rem; border-radius: var(--radius-md); transition: background .15s, transform .1s;
+  }
+  .btn:hover { background: var(--guinda-dark); }
+  .btn:active { transform: scale(.97); }
+  .btn.ghost { background: var(--white); color: var(--guinda); }
+  .btn.ghost:hover { background: var(--guinda-light); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, .chip-btn:focus-visible, .dv-opt:focus-visible, .node:focus-visible {
+    outline: 3px solid var(--guinda-rule); outline-offset: 2px;
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+  .chip-btn {
+    cursor: pointer; font-family: var(--font-ui); font-size: .8rem; font-weight: 600;
+    background: var(--white); color: var(--guinda); border: 2px solid var(--guinda);
+    padding: .45rem .9rem; border-radius: 999px; transition: background .15s;
+  }
+  .chip-btn:hover { background: var(--guinda-light); }
+  .chip-btn.active { background: var(--guinda); color: var(--white); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .stat { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .5rem; text-align: center; }
+  .stat b { display: block; font-family: var(--font-display); font-size: 1.4rem; color: var(--guinda); }
+  .stat span { font-family: var(--font-ui); font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); }
+
+  /* Mapa SVG */
+  .map-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .8rem; margin: 1.2rem 0; overflow-x: auto; }
+  .map-wrap svg { width: 100%; height: auto; min-width: 560px; display: block; }
+  .map-caption { font-family: var(--font-ui); font-size: .78rem; color: var(--ink-muted); text-align: center; margin-top: .4rem; }
+
+  /* Tabla de buses */
+  .tbl-wrap { overflow-x: auto; }
+
+  /* Estación 1: aduana de dispositivos */
+  .dv-card {
+    background: var(--white); border: 2px solid var(--guinda); border-radius: var(--radius-lg);
+    text-align: center; padding: 1.4rem 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-md);
+  }
+  .dv-card .dv-label { font-family: var(--font-ui); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-muted); display: block; }
+  .dv-card .dv-name { font-family: var(--font-display); font-size: 2rem; font-weight: 600; color: var(--guinda); display: block; margin: .3rem 0; line-height: 1.15; }
+  .dv-card .dv-hint { font-size: .9rem; color: var(--ink-secondary); display: block; }
+  .dv-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  @media (max-width: 560px) { .dv-opts { grid-template-columns: 1fr; } }
+  .dv-opt {
+    cursor: pointer; font-family: var(--font-ui); font-size: .85rem; font-weight: 700; text-align: center;
+    background: var(--surface); color: var(--guinda); border: 2px dashed var(--guinda-rule);
+    border-radius: var(--radius-md); padding: .9rem .5rem; transition: background .15s, transform .15s;
+  }
+  .dv-opt small { display: block; font-weight: 500; font-size: .7rem; color: var(--ink-muted); margin-top: .15rem; }
+  .dv-opt:hover:not(:disabled) { background: var(--guinda-light); transform: translateY(-2px); }
+  .dv-opt:disabled { cursor: default; }
+  .dv-opt.good { background: #e8f5ec; border: 2px solid #1e6b3a; color: #1e6b3a; }
+  .dv-opt.bad { background: #fbe9e9; border: 2px solid #a12b2b; color: #a12b2b; animation: shake .35s; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .dv-feedback { min-height: 3.4em; margin-top: .9rem; font-size: .93rem; }
+  .dv-feedback.ok { color: #1e6b3a; font-weight: 600; } .dv-feedback.bad { color: #a12b2b; font-weight: 600; }
+  .dv-progress { height: 8px; background: var(--surface); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 1rem; }
+  .dv-progress div { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .4s ease; }
+
+  /* Estación 2: viaje de un dato */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
+  .node {
+    background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md);
+    padding: .7rem .4rem; text-align: center; transition: background .3s, border-color .3s, color .3s, transform .3s;
+  }
+  .node .node-role { display: block; font-family: var(--font-ui); font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); }
+  .node .node-name { display: block; font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); margin-top: .2rem; line-height: 1.25; }
+  .node.passed { background: var(--guinda-light); border-color: var(--guinda-rule); }
+  .node.active { background: var(--guinda); border-color: var(--guinda); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .node.active .node-role, .node.active .node-name { color: var(--white); }
+  .flow-track { position: relative; height: 54px; margin-top: .5rem; }
+  .flow-track::before { content: ""; position: absolute; left: 10%; right: 10%; top: 50%; height: 4px; margin-top: -2px; background: repeating-linear-gradient(90deg, var(--guinda-rule) 0 10px, transparent 10px 18px); border-radius: 2px; }
+  .flow-stop { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--white); border: 3px solid var(--guinda-rule); }
+  .packet {
+    position: absolute; top: 50%; left: 10%; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+    transition: left .8s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 2px 3px rgba(73,11,88,.35));
+  }
+  .packet img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  @media (max-width: 700px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-track { display: none; }
+    .node { display: flex; align-items: center; gap: .8rem; text-align: left; padding: .6rem .9rem; }
+    .node .node-name { margin-top: 0; }
+  }
+  .flow-text { margin-top: 1rem; background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.3rem; }
+  .flow-text h3 { font-family: var(--font-ui); font-size: 1rem; color: var(--guinda); margin-bottom: .3rem; }
+  .flow-text p { font-size: .95rem; margin-bottom: 0; }
+
+  /* Estación 3: buses */
+  .lanes { display: grid; gap: .6rem; }
+  .lane {
+    display: grid; grid-template-columns: 170px 90px 1fr; gap: .8rem; align-items: center;
+    background: var(--white); border: 2px solid var(--border); border-radius: var(--radius-md); padding: .65rem .9rem;
+    transition: border-color .3s, background .3s;
+  }
+  .lane .ln-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .lane .ln-name small { display: block; font-size: .66rem; font-weight: 500; color: var(--ink-muted); }
+  .lane .ln-dir { font-family: var(--font-ui); font-size: .72rem; color: var(--ink-secondary); text-align: center; }
+  .lane .ln-dir b { display: block; font-size: 1.3rem; color: var(--guinda-rule); line-height: 1; }
+  .lane .ln-val { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--ink-muted); min-height: 1.6em; }
+  .lane.on { border-color: var(--guinda); background: var(--guinda-light); }
+  .lane.on .ln-val { color: var(--guinda); }
+  .lane.on .ln-dir b { color: var(--guinda); }
+  @media (max-width: 640px) { .lane { grid-template-columns: 1fr; gap: .2rem; } .lane .ln-dir { text-align: left; } .lane .ln-dir b { display: inline; margin-right: .4rem; } }
+
+  .calc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .calc-grid { grid-template-columns: 1fr; } }
+  .field label { display: block; font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600; margin-bottom: .25rem; }
+  .field input[type="number"], .field input[type="text"], .field select {
+    width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink);
+  }
+  .field input[type="range"] { width: 100%; accent-color: #490b58; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--guinda-rule); border-color: var(--guinda); }
+  .bits { display: flex; flex-wrap: wrap; gap: 2px; margin-top: .5rem; min-height: 16px; }
+  .bits i { display: block; width: 9px; height: 16px; border-radius: 2px; background: var(--guinda-rule); }
+  .bits.data i { background: var(--guinda); }
+  .calc-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: 1.1rem; }
+  @media (max-width: 760px) { .calc-out { grid-template-columns: 1fr; } }
+  .out-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .out-box .ob-label { font-family: var(--font-ui); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); display: block; }
+  .out-box .ob-value { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; color: var(--guinda); line-height: 1.2; display: block; word-break: break-word; }
+  .out-box .ob-note { font-size: .82rem; color: var(--ink-secondary); display: block; margin-top: .2rem; }
+
+  /* Estación 4: carrera */
+  .race-presets { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem 0 1rem; }
+  .race-size { display: grid; grid-template-columns: 1fr 120px; gap: .6rem; max-width: 360px; margin-bottom: .6rem; }
+  .race-row { display: grid; grid-template-columns: 190px 1fr 130px; gap: .8rem; align-items: center; margin: .55rem 0; }
+  @media (max-width: 700px) { .race-row { grid-template-columns: 1fr; gap: .25rem; margin: .9rem 0; } }
+  .race-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--ink); }
+  .race-name small { display: block; font-weight: 500; color: var(--ink-muted); font-size: .68rem; }
+  .race-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 22px; overflow: hidden; }
+  .race-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #C85070, #7B1034); }
+  .race-fill.run { transition: width 3s cubic-bezier(.25,.6,.3,1); }
+  .race-time { font-family: var(--font-mono); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .race-winner { color: #1e6b3a; }
+
+  /* Estación 5: ficha */
+  .chk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .chk-grid { grid-template-columns: 1fr; } }
+  .chk-group { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .chk-group h4 { font-family: var(--font-ui); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda); margin-bottom: .5rem; }
+  .chk-group label { display: flex; gap: .5rem; align-items: center; font-size: .9rem; padding: .22rem 0; cursor: pointer; }
+  .chk-group input { accent-color: #490b58; width: 16px; height: 16px; }
+  .ficha-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .ficha-fields { grid-template-columns: 1fr; } }
+  .summary-box {
+    width: 100%; min-height: 190px; font-family: var(--font-mono); font-size: .8rem; padding: .7rem .9rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); resize: vertical;
+  }
+
+  /* Quiz */
+  .q { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; margin-bottom: .9rem; }
+  .q .q-text { font-weight: 600; margin-bottom: .5rem; font-size: .96rem; }
+  .q label {
+    display: block; padding: .4rem .7rem; margin: .25rem 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; font-size: .92rem; transition: background .15s;
+  }
+  .q label:hover { background: var(--guinda-light); }
+  .q input { margin-right: .5rem; accent-color: #490b58; }
+  .q.right label.chosen { background: #e8f5ec; border-color: #1e6b3a; }
+  .q.wrong label.chosen { background: #fbe9e9; border-color: #a12b2b; }
+  .q .q-expl { display: none; font-size: .86rem; color: var(--ink-secondary); margin-top: .5rem; padding-left: .7rem; border-left: 3px solid var(--guinda-rule); }
+  .q.shown .q-expl { display: block; }
+  .quiz-result { font-family: var(--font-display); font-size: 1.3rem; color: var(--guinda); margin-top: .8rem; font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .packet, .node, .route a, .dv-progress div { transition: none; }
+    .race-fill.run { transition: none; }
+    .dv-opt.bad { animation: none; }
+  }
+
+  /* ═════ Estilos propios de la clase 2.1 ═════ */
+  .gloss { display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem; margin: 1rem 0; }
+  @media (max-width: 640px) { .gloss { grid-template-columns: 1fr; } }
+  .gloss div { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--guinda-rule); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: .7rem 1rem; font-size: .93rem; }
+  .gloss b { display: block; font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda); margin-bottom: .15rem; }
+
+  /* Capas */
+  .layer-wrap { display: grid; grid-template-columns: 1fr 1.1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 760px) { .layer-wrap { grid-template-columns: 1fr; } }
+  .layer-stack { display: flex; flex-direction: column; gap: .5rem; }
+  .layer-user { text-align: center; font-family: var(--font-ui); font-size: .8rem; font-weight: 700; color: var(--guinda); border: 2px dashed var(--guinda-rule); border-radius: var(--radius-md); padding: .6rem; background: var(--white); }
+  .layer-arrow { text-align: center; font-size: 1.1rem; color: var(--guinda-rule); line-height: 1; }
+  .layer-btn {
+    cursor: pointer; width: 100%; border: 2px solid transparent; border-radius: var(--radius-md); color: var(--white);
+    font-family: var(--font-ui); font-size: .92rem; font-weight: 700; padding: 1rem .8rem; text-align: center;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .layer-btn small { display: block; font-weight: 500; font-size: .72rem; opacity: .9; margin-top: .15rem; }
+  .layer-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .layer-btn.active { outline: 3px solid var(--guinda-rule); outline-offset: 2px; }
+  .layer-btn:focus-visible { outline: 3px solid var(--guinda-rule); outline-offset: 2px; }
+  .layer-btn[data-k="app"] { background: #B0526C; }
+  .layer-btn[data-k="base"] { background: #691f35; }
+  .layer-btn[data-k="hw"] { background: #490b58; }
+  .layer-btn[data-k="dev"] { background: var(--white); color: var(--guinda); border: 2px dashed var(--guinda); margin-top: .8rem; }
+  .layer-note { font-family: var(--font-ui); font-size: .72rem; color: var(--ink-muted); text-align: center; margin-top: -.3rem; }
+  .ex-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0 0; }
+  .ex-chips span { font-family: var(--font-ui); font-size: .78rem; font-weight: 600; background: var(--guinda-light); color: var(--guinda-dark); border: 1px solid #D8A8BA; border-radius: 999px; padding: .2rem .7rem; }
+
+  /* Clasificador */
+  .cls-items { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .item-btn {
+    cursor: pointer; font-family: var(--font-body); font-size: .92rem; text-align: left;
+    background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md);
+    padding: .5rem .85rem; max-width: 100%; transition: border-color .15s, background .15s;
+  }
+  .item-btn:hover:not(:disabled) { border-color: var(--guinda); }
+  .item-btn.selected { border-color: var(--guinda); background: var(--guinda-light); box-shadow: 0 0 0 3px rgba(200,80,112,.25); }
+  .item-btn.done { opacity: .5; cursor: default; border-color: #1e6b3a; background: #e8f5ec; }
+  .item-btn:focus-visible, .bin-btn:focus-visible { outline: 3px solid var(--guinda-rule); outline-offset: 2px; }
+  .cls-bins { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  @media (max-width: 640px) { .cls-bins { grid-template-columns: 1fr; } }
+  .bin-btn {
+    cursor: pointer; background: var(--surface); border: 2px dashed var(--guinda-rule); border-radius: var(--radius-md);
+    padding: .8rem .5rem; font-family: var(--font-ui); font-size: .85rem; font-weight: 700; color: var(--guinda);
+    min-height: 96px; text-align: center; transition: background .15s;
+  }
+  .bin-btn:hover { background: var(--guinda-light); }
+  .bin-btn small { display: block; font-weight: 500; font-size: .7rem; color: var(--ink-muted); margin-top: .2rem; }
+  .bin-btn .bin-count { display: block; font-weight: 700; font-size: .78rem; color: var(--guinda-mid); margin-top: .4rem; }
+  .bin-btn.shake { animation: shake .35s; border-color: #a12b2b; }
+  .cls-msg { margin-top: .9rem; font-size: .93rem; min-height: 3em; }
+  .cls-msg.ok { color: #1e6b3a; font-weight: 600; } .cls-msg.bad { color: #a12b2b; font-weight: 600; }
+
+  /* Evolución */
+  .era-card { display: grid; grid-template-columns: 110px 1fr; gap: 1.2rem; align-items: center; background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1.1rem 1.3rem; margin-top: 1.1rem; }
+  @media (max-width: 560px) { .era-card { grid-template-columns: 1fr; text-align: center; } .era-card .era-icon { margin: 0 auto; } }
+  .era-icon { width: 96px; height: 96px; background: var(--guinda-light); border: 1px solid #D8A8BA; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .era-icon svg { width: 62px; height: 62px; }
+  .era-years { font-family: var(--font-ui); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); font-weight: 700; display: block; }
+  .era-card h3 { font-family: var(--font-display); font-size: 1.5rem; color: var(--guinda); margin: .15rem 0 .4rem; }
+  .era-card p { font-size: .95rem; margin-bottom: .4rem; }
+  .era-slider { margin-top: .3rem; }
+  .era-slider input[type="range"] { width: 100%; accent-color: #490b58; }
+  .era-ticks { display: grid; grid-template-columns: repeat(6, 1fr); font-family: var(--font-ui); font-size: .68rem; color: var(--ink-muted); text-align: center; }
+  @media (max-width: 560px) { .era-ticks { font-size: .56rem; } }
+
+  /* Inventario */
+  .inv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .inv-grid { grid-template-columns: 1fr; } }
+  .chk-group label { display: flex; gap: .5rem; align-items: center; font-size: .9rem; padding: .22rem 0; cursor: pointer; }
+  .meter { margin: .55rem 0; }
+  .meter .m-top { display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: .8rem; font-weight: 600; margin-bottom: .25rem; }
+  .meter .m-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 16px; overflow: hidden; }
+  .meter .m-fill { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .6s ease; }
+  @media (prefers-reduced-motion: reduce) { .layer-btn, .meter .m-fill { transition: none; } .bin-btn.shake { animation: none; } }
+
+  /* Tarjeta de detalle */
+  .detail-card {
+    background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1.1rem 1.3rem; min-height: 300px;
+  }
+  .detail-card h3 { font-family: var(--font-ui); font-size: 1.05rem; color: var(--guinda); margin-bottom: .2rem; }
+  .detail-card .detail-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); display: block; margin-bottom: .7rem; }
+  .spec-grid { display: grid; grid-template-columns: 1fr; gap: .5rem; margin: .8rem 0; }
+  .spec { background: var(--surface); border-radius: var(--radius-sm); padding: .45rem .7rem; font-family: var(--font-ui); font-size: .82rem; }
+  .spec b { display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); }
+  .detail-analogy { background: var(--guinda-light); border: 1px solid #D8A8BA; border-radius: var(--radius-sm); padding: .6rem .9rem; font-size: .9rem; margin-top: .6rem; }
+  .detail-analogy strong { color: var(--guinda-dark); }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap"><img src="imagen1.png" alt="Logo IEDEP"></div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Guía de clase interactiva — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Unidad 2 · Software de Sistema y de Aplicación</span>
+    <h1>Clasificación y evolución del software: base, aplicación y herramientas de desarrollo</h1>
+    <span class="class-subtitle">El hardware es el cuerpo de la computadora; el software es todo lo que le dice qué hacer. Hoy aprenderás los tipos de software con ejemplos de tu vida diaria.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Fecha<span>Domingo 25 de octubre de 2026</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha de la clase</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Unidad</span><span>2. Software de Sistema y de Aplicación</span></li>
+          <li><span class="info-label">Tema</span><span>2.1 Clasificación y evolución del software: base, aplicación y herramientas de desarrollo</span></li>
+          <li><span class="info-label">Fecha</span><span>Domingo 25 de octubre de 2026</span></li>
+        </ul>
+      </div>
+
+      <span class="section-label">Competencias a desarrollar</span>
+      <div class="competency-card">
+        <span class="comp-num">01</span>
+        <span class="comp-text"><strong>Competencia de unidad:</strong> Contrastar los tipos de software y las funciones críticas del Sistema Operativo, a través de la revisión de esquemas de licenciamiento y administración de procesos, con el propósito de seleccionar las herramientas adecuadas respetando la normativa de propiedad intelectual y eficiencia técnica.</span>
+      </div>
+      <div class="competency-card">
+        <span class="comp-num">02</span>
+        <span class="comp-text"><strong>Competencia del tema:</strong> Diferenciar el software de base, el software de aplicación y las herramientas de desarrollo, identificando ejemplos y la función de cada uno, para reconocer qué tipo de software se necesita en distintas situaciones.</span>
+      </div>
+
+      <span class="section-label" style="margin-top:1.5rem;">Ruta de la clase (haz clic para ir a cada estación)</span>
+      <nav class="route" aria-label="Ruta de la clase">
+        <a href="#e1">Explora las capas</a>
+        <a href="#e2">Clasifica programas</a>
+        <a href="#e3">Viaja en el tiempo</a>
+        <a href="#e4">Tu inventario</a>
+        <a href="#quizSec">Comprueba</a>
+      </nav>
+    </section>
+
+    <!-- ══════════════ INTRO ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">¿Qué es el software? Empecemos desde cero</h2>
+      <p>En la Unidad 1 estudiaste el <strong>hardware</strong>: todo lo que puedes tocar, como la pantalla, el teclado, el procesador y la memoria. Pero una computadora apagada, o sin programas, no sabe hacer nada. Lo que le da vida es el <strong>software</strong>: el conjunto de programas e instrucciones que le dicen qué hacer.</p>
+      <p>Piensa en un piano. El piano (el hardware) tiene teclas y cuerdas, pero necesita la partitura (el software) para tocar una canción. Por eso se dice que el hardware es lo que <em>puedes tocar</em> y el software es lo que <em>no puedes tocar</em>, pero sin él nada funciona.</p>
+
+      <div class="concept-box">
+        <span class="concept-title">Analogía de hoy: un edificio de departamentos</span>
+        <p>Imagina un edificio. El <strong>edificio de concreto</strong> es el hardware. El <strong>administrador</strong> reparte la luz y el agua, cuida las llaves y evita que los vecinos se estorben: es el <strong>software de base</strong>. Los <strong>inquilinos</strong> usan sus locales para hacer cosas concretas (una tienda, un consultorio, una cafetería): son las <strong>aplicaciones</strong>. Y los <strong>albañiles con su caja de herramientas</strong>, que construyen locales nuevos, son las <strong>herramientas de desarrollo</strong>.</p>
+      </div>
+
+      <h3 style="font-family:var(--font-ui); font-size:1rem; color:var(--guinda); margin:1.6rem 0 .3rem;">Palabras que usaremos hoy</h3>
+      <div class="gloss">
+        <div><b>Programa</b>Lista de instrucciones que la computadora sigue paso a paso.</div>
+        <div><b>Sistema operativo</b>El programa principal que administra la computadora (por ejemplo, Windows o Android).</div>
+        <div><b>Aplicación (app)</b>Programa que sirve para hacer una tarea concreta, como escribir o chatear.</div>
+        <div><b>Controlador (driver)</b>Pequeño programa que enseña al sistema operativo a usar una pieza de hardware.</div>
+        <div><b>Utilería</b>Programa de apoyo para cuidar o mantener el equipo, como un antivirus.</div>
+        <div><b>Código fuente</b>El texto escrito por una persona programadora, antes de convertirse en un programa que funcione.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 1 ══════════════ -->
+    <section class="section" id="e1">
+      <h2 class="section-title">Estación 1 · Explora las capas del software</h2>
+      <p>Aquí tienes el edificio por dentro. Haz clic en cada capa para conocer qué es, un ejemplo de la vida real y qué programas pertenecen a ella. Observa que las capas se apoyan unas en otras: tú le hablas a una aplicación, la aplicación le pide ayuda al sistema operativo y el sistema operativo usa el hardware.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>El edificio del software</span><span class="lab-tag">Haz clic en una capa</span></div>
+        <div class="lab-body">
+          <div class="layer-wrap">
+            <div class="layer-stack" role="group" aria-label="Capas del software">
+              <div class="layer-user">Tú, la persona usuaria</div>
+              <div class="layer-arrow" aria-hidden="true">▼</div>
+              <button class="layer-btn" data-k="app" type="button">Software de aplicación<small>los inquilinos</small></button>
+              <div class="layer-arrow" aria-hidden="true">▼</div>
+              <button class="layer-btn" data-k="base" type="button">Software de base<small>el administrador (sistema operativo)</small></button>
+              <div class="layer-arrow" aria-hidden="true">▼</div>
+              <button class="layer-btn" data-k="hw" type="button">Hardware<small>el edificio</small></button>
+              <button class="layer-btn" data-k="dev" type="button">Herramientas de desarrollo<small>los albañiles: crean el software de arriba</small></button>
+            </div>
+            <div class="detail-card" id="layerDetail" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 2 ══════════════ -->
+    <section class="section" id="e2">
+      <h2 class="section-title">Estación 2 · Clasifica programas</h2>
+      <p>¿Podrías decir en qué categoría va cada programa? Haz clic en uno de los 12 programas y luego en su categoría. Si te equivocas, recibirás una pista. Cada programa se clasifica una sola vez.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Clasificador de software</span><span class="lab-tag" id="clsScore">0 / 12</span></div>
+        <div class="lab-body">
+          <div class="cls-items" id="clsItems" role="group" aria-label="Programas por clasificar"></div>
+          <div class="cls-bins" id="clsBins" role="group" aria-label="Categorías"></div>
+          <div class="cls-msg" id="clsMsg" aria-live="polite">Selecciona un programa para comenzar.</div>
+          <div class="callout note" id="clsSummary" style="display:none;"><p id="clsSummaryText"></p></div>
+          <div class="btn-row" style="margin-top:.8rem;"><button class="btn ghost" id="clsReset" type="button">Reiniciar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mascot-tip">
+      <img src="imagen2.png" alt="Mascota Mixtle">
+      <div>
+        <span class="mascot-label">Dato curioso</span>
+        <p>La palabra «software» se popularizó en 1958 gracias al estadístico estadounidense John Tukey. La inventó como contraste de «hardware», que en inglés significa «ferretería»: las cosas duras y metálicas. «Soft» significa suave, porque el software no se puede tocar.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ ESTACIÓN 3 ══════════════ -->
+    <section class="section" id="e3">
+      <h2 class="section-title">Estación 3 · Viaja en el tiempo: la evolución del software</h2>
+      <p>El software no siempre fue como lo conoces. Mueve el control (o usa los botones) para viajar por seis épocas y ver cómo pasamos de programar con tarjetas de cartón a usar apps en el celular.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Máquina del tiempo del software</span><span class="lab-tag">Desliza o elige una época</span></div>
+        <div class="lab-body">
+          <div class="era-slider">
+            <label for="eraRange" class="lab-sub" style="margin-top:0;">Época</label>
+            <input type="range" id="eraRange" min="0" max="5" step="1" value="0" aria-describedby="eraCard">
+            <div class="era-ticks" aria-hidden="true"><span>1940</span><span>1955</span><span>1970</span><span>1981</span><span>1995</span><span>2007</span></div>
+          </div>
+          <div class="era-card" id="eraCard" aria-live="polite"></div>
+          <div class="btn-row" style="margin-top:1rem;">
+            <button class="btn ghost" id="eraPrev" type="button">Época anterior</button>
+            <button class="btn" id="eraNext" type="button">Época siguiente</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 4 ══════════════ -->
+    <section class="section" id="e4">
+      <h2 class="section-title">Estación 4 · Tu inventario de software</h2>
+      <p>Ahora aplica lo aprendido a tu propio equipo. Marca el software que usas o tienes instalado y genera tu inventario. Verás cuántos programas tienes de cada tipo. Esta información te ayudará más adelante con el informe de caso práctico de la Unidad 2.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Inventario de software de mi equipo</span><span class="lab-tag">Se genera aquí, no se envía a ningún lado</span></div>
+        <div class="lab-body">
+          <div class="ficha-fields">
+            <div class="field"><label for="iEquipo">Mi equipo</label><input type="text" id="iEquipo" maxlength="40" placeholder="Ej. Laptop, celular..."></div>
+            <div class="field">
+              <label for="iSO">Mi sistema operativo</label>
+              <select id="iSO">
+                <option value="no identificado">No lo sé</option>
+                <option>Windows</option><option>macOS</option><option>Linux</option>
+                <option>Android</option><option>iOS (iPhone)</option><option>ChromeOS</option><option>Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="inv-grid" id="invGrid"></div>
+          <div class="btn-row" style="margin-top:1.1rem;">
+            <button class="btn" id="iGen" type="button">Generar mi inventario</button>
+            <span id="iMsg" style="font-size:.88rem; font-weight:600;" aria-live="polite"></span>
+          </div>
+          <div id="iOut" style="display:none; margin-top:1.2rem;">
+            <div class="meter"><div class="m-top"><span>Software de base</span><span id="mBaseTxt"></span></div><div class="m-track"><div class="m-fill" id="mBase"></div></div></div>
+            <div class="meter"><div class="m-top"><span>Software de aplicación</span><span id="mAppTxt"></span></div><div class="m-track"><div class="m-fill" id="mApp"></div></div></div>
+            <div class="meter"><div class="m-top"><span>Herramientas de desarrollo</span><span id="mDevTxt"></span></div><div class="m-track"><div class="m-fill" id="mDev"></div></div></div>
+            <p id="iComment" style="font-size:.93rem; margin-top:.8rem;"></p>
+            <label for="iSummary" class="lab-sub" style="margin-top:.4rem;">Resumen para tus apuntes</label>
+            <textarea class="summary-box" id="iSummary" readonly></textarea>
+            <div class="btn-row" style="margin-top:.6rem;"><button class="btn ghost" id="iCopy" type="button">Copiar resumen</button><span id="iCopyMsg" style="font-size:.85rem;" aria-live="polite"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ AUTOEVALUACIÓN ══════════════ -->
+    <section class="section" id="quizSec">
+      <h2 class="section-title">Comprueba lo aprendido</h2>
+      <p>Cinco preguntas sencillas para saber cómo vas. No se registra ninguna calificación: es solo para ti.</p>
+      <div id="quiz"></div>
+      <button class="btn" id="btnQuiz" type="button">Comprobar mis respuestas</button>
+      <div class="quiz-result" id="quizResult" aria-live="polite"></div>
+    </section>
+
+    <!-- ══════════════ CONCLUSIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Conclusión</h2>
+      <p>El software se puede clasificar en tres grandes grupos. El <strong>software de base</strong> (sistema operativo, controladores y utilerías) hace funcionar la computadora y conecta el hardware con los programas. El <strong>software de aplicación</strong> sirve para que las personas realicen tareas concretas. Y las <strong>herramientas de desarrollo</strong> permiten crear nuevos programas. Como en un edificio, cada capa depende de la anterior.</p>
+      <p>Además, vimos que el software evolucionó junto con el hardware: pasó de las tarjetas perforadas a los sistemas operativos, de las computadoras personales a Internet y de ahí a las apps del celular y la inteligencia artificial. En la próxima sesión estudiaremos con más detalle al protagonista de la capa de base: las funciones principales del <strong>sistema operativo</strong>, como la gestión de procesos y de memoria.</p>
+    </section>
+
+    <!-- ══════════════ REFERENCIAS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Referencias bibliográficas</h2>
+      <p class="text-sm">Floyd, T. L. (2021). <em>Fundamentos de sistemas digitales</em>. Pearson Educación.</p>
+      <p class="text-sm">Silberschatz, A., Galvin, P. B., y Gagne, G. (2021). <em>Operating System Concepts</em> (10.ª ed.). Wiley.</p>
+      <p class="text-sm">Tanenbaum, A. S., y Bos, H. (2023). <em>Modern Operating Systems</em> (5.ª ed.). Pearson.</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Unidad 2 · Tema 2.1</span>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+
+  /* ═════════ Estación 1 · Capas ═════════ */
+  var LAYERS = {
+    app: { title: 'Software de aplicación', sub: 'Los inquilinos del edificio',
+      simple: 'Son los programas que usas para hacer una tarea concreta: escribir un trabajo, platicar con amigos, ver videos o estudiar en línea.',
+      who: 'Tú, directamente, todos los días.',
+      analogy: 'Cada inquilino usa su local para algo distinto: una tienda, un consultorio, una cafetería. Así, cada app sirve para algo distinto.',
+      ex: ['Word', 'WhatsApp', 'Google Chrome', 'Spotify', 'Zoom'] },
+    base: { title: 'Software de base (o de sistema)', sub: 'El administrador del edificio',
+      simple: 'Hace funcionar a la computadora y sirve de puente entre el hardware y las aplicaciones. Incluye el sistema operativo, los controladores (drivers) y las utilerías, como el antivirus o el administrador de archivos.',
+      who: 'Las aplicaciones y tú, casi sin notarlo.',
+      analogy: 'El administrador reparte la luz y el agua, cuida las llaves y atiende a todos los inquilinos para que no se estorben entre sí.',
+      ex: ['Windows', 'macOS', 'Linux', 'Android', 'iOS', 'Controladores'] },
+    hw: { title: 'Hardware', sub: 'El edificio de concreto',
+      simple: 'Es la parte física de la computadora, la que puedes tocar. Ya lo estudiaste en la Unidad 1. Por sí solo no sabe qué hacer: necesita el software.',
+      who: 'Todo el sistema se apoya en él.',
+      analogy: 'Es la estructura, los cables y las tuberías del edificio. Sin inquilinos ni administrador, solo es un edificio vacío.',
+      ex: ['CPU', 'Memoria RAM', 'Disco', 'Pantalla', 'Teclado'] },
+    dev: { title: 'Herramientas de desarrollo', sub: 'Los albañiles y su caja de herramientas',
+      simple: 'Son los programas que usan las personas programadoras para crear otros programas: escribir el código, convertirlo en un programa que funcione y encontrar errores.',
+      who: 'Personas programadoras (y pronto, tú).',
+      analogy: 'Los albañiles usan sus herramientas para construir locales nuevos. Las personas programadoras usan estas herramientas para crear nuevas aplicaciones.',
+      ex: ['Visual Studio Code', 'Compilador', 'Intérprete de Python', 'Git'] }
+  };
+  var lbtns = document.querySelectorAll('.layer-btn');
+  function showLayer(k) {
+    var L = LAYERS[k];
+    lbtns.forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-k') === k); });
+    var chips = L.ex.map(function (e) { return '<span>' + e + '</span>'; }).join('');
+    $('layerDetail').innerHTML =
+      '<h3>' + L.title + '</h3><span class="detail-sub">' + L.sub + '</span>' +
+      '<p style="font-size:.95rem;">' + L.simple + '</p>' +
+      '<div class="spec-grid"><div class="spec"><b>¿Quién lo usa?</b>' + L.who + '</div></div>' +
+      '<div class="detail-analogy"><strong>Analogía:</strong> ' + L.analogy + '</div>' +
+      '<div class="ex-chips" aria-label="Ejemplos">' + chips + '</div>';
+  }
+  lbtns.forEach(function (b) { b.addEventListener('click', function () { showLayer(b.getAttribute('data-k')); }); });
+  $('layerDetail').innerHTML = '<h3>Elige una capa</h3><span class="detail-sub">Haz clic en el edificio</span><p style="font-size:.95rem;">Empieza por la que más uses todos los días: las aplicaciones.</p>';
+
+  /* ═════════ Estación 2 · Clasificador ═════════ */
+  var BINS = [
+    { k: 'base', name: 'Software de base', sub: 'hace funcionar la computadora' },
+    { k: 'app', name: 'Software de aplicación', sub: 'sirve para una tarea concreta' },
+    { k: 'dev', name: 'Herramienta de desarrollo', sub: 'sirve para crear programas' }
+  ];
+  var KN = { base: 'software de base', app: 'software de aplicación', dev: 'herramienta de desarrollo' };
+  var ITEMS = [
+    { n: 'Windows', k: 'base', why: 'Windows es un sistema operativo: administra toda la computadora.' },
+    { n: 'Android', k: 'base', why: 'Android es el sistema operativo de muchos celulares.' },
+    { n: 'Linux', k: 'base', why: 'Linux es un sistema operativo (y es software libre).' },
+    { n: 'Controlador (driver) de la impresora', k: 'base', why: 'El controlador le enseña al sistema operativo a comunicarse con la impresora.' },
+    { n: 'Word', k: 'app', why: 'Word sirve para una tarea concreta: escribir documentos.' },
+    { n: 'WhatsApp', k: 'app', why: 'WhatsApp sirve para una tarea concreta: enviar mensajes.' },
+    { n: 'Google Chrome', k: 'app', why: 'Un navegador es una aplicación para ver páginas de Internet.' },
+    { n: 'Spotify', k: 'app', why: 'Spotify es una aplicación para escuchar música.' },
+    { n: 'Zoom', k: 'app', why: 'Zoom es una aplicación para hacer videollamadas.' },
+    { n: 'Visual Studio Code', k: 'dev', why: 'Es un editor donde las personas programadoras escriben código.' },
+    { n: 'Intérprete de Python', k: 'dev', why: 'Ejecuta los programas escritos en Python; es una herramienta para programar.' },
+    { n: 'Compilador de C#', k: 'dev', why: 'Convierte el código fuente escrito en C# en un programa que la computadora puede ejecutar.' }
+  ];
+  var sel = null, done = 0, firstTry = 0, tried = {}, counts = { base: 0, app: 0, dev: 0 };
+  var itemEls = {}, binEls = {};
+
+  function buildSorter() {
+    var cont = $('clsItems'); cont.innerHTML = ''; itemEls = {};
+    sel = null; done = 0; firstTry = 0; tried = {}; counts = { base: 0, app: 0, dev: 0 };
+    shuffle(ITEMS).forEach(function (it) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'item-btn'; b.textContent = it.n;
+      b.addEventListener('click', function () {
+        if (b.classList.contains('done')) return;
+        Object.keys(itemEls).forEach(function (n) { itemEls[n].btn.classList.remove('selected'); });
+        sel = it; b.classList.add('selected');
+        setMsg('Elegiste «' + it.n + '». Ahora haz clic en su categoría.', '');
+      });
+      cont.appendChild(b); itemEls[it.n] = { btn: b, it: it };
+    });
+    var bins = $('clsBins'); bins.innerHTML = ''; binEls = {};
+    BINS.forEach(function (bn) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'bin-btn';
+      b.innerHTML = bn.name + '<small>' + bn.sub + '</small><span class="bin-count">0 programas</span>';
+      b.addEventListener('click', function () { place(bn.k, b); });
+      bins.appendChild(b); binEls[bn.k] = b;
+    });
+    $('clsSummary').style.display = 'none';
+    $('clsScore').textContent = '0 / ' + ITEMS.length;
+    setMsg('Selecciona un programa para comenzar.', '');
+  }
+  function setMsg(t, cls) { var m = $('clsMsg'); m.className = 'cls-msg ' + cls; m.textContent = t; }
+  function place(k, binBtn) {
+    if (!sel) { setMsg('Primero elige un programa de la lista.', 'bad'); return; }
+    var it = sel;
+    if (it.k === k) {
+      if (!tried[it.n]) firstTry++;
+      var e = itemEls[it.n].btn;
+      e.classList.remove('selected'); e.classList.add('done'); e.disabled = true;
+      done++; counts[k]++;
+      binBtn.querySelector('.bin-count').textContent = counts[k] + (counts[k] === 1 ? ' programa' : ' programas');
+      $('clsScore').textContent = done + ' / ' + ITEMS.length;
+      setMsg('Correcto. ' + it.why, 'ok');
+      sel = null;
+      if (done === ITEMS.length) finishSorter();
+    } else {
+      tried[it.n] = true;
+      binBtn.classList.remove('shake'); void binBtn.offsetWidth; binBtn.classList.add('shake');
+      setMsg('Todavía no. Pista: ' + hint(it.k), 'bad');
+    }
+  }
+  function hint(k) {
+    if (k === 'base') return 'este programa trabaja «por debajo» y hace posible que la computadora y los demás programas funcionen.';
+    if (k === 'app') return 'es un programa que tú abres para hacer algo concreto, como comunicarte, escribir o escuchar.';
+    return 'lo usan las personas programadoras para crear otros programas.';
+  }
+  function finishSorter() {
+    var pct = Math.round(firstTry / ITEMS.length * 100);
+    $('clsSummaryText').innerHTML = '<strong>Terminaste.</strong> Acertaste ' + firstTry + ' de ' + ITEMS.length + ' a la primera (' + pct + ' %). ' +
+      (pct >= 80 ? 'Muy buen trabajo.' : 'Repasa las capas de la estación 1 y vuelve a intentarlo con el botón «Reiniciar».') +
+      ' Truco para recordar: si lo abres para hacer algo, es aplicación; si trabaja por debajo, es de base; si sirve para crear programas, es de desarrollo.';
+    $('clsSummary').style.display = 'block';
+  }
+  $('clsReset').addEventListener('click', buildSorter);
+  buildSorter();
+
+  /* ═════════ Estación 3 · Evolución ═════════ */
+  var ICONS = [
+    '<svg viewBox="0 0 64 64" fill="none" stroke="#490b58" stroke-width="2.5" aria-hidden="true"><rect x="8" y="16" width="48" height="32" rx="3"/><g fill="#490b58" stroke="none"><rect x="14" y="22" width="5" height="3"/><rect x="24" y="22" width="5" height="3"/><rect x="40" y="22" width="5" height="3"/><rect x="19" y="30" width="5" height="3"/><rect x="33" y="30" width="5" height="3"/><rect x="47" y="30" width="5" height="3"/><rect x="14" y="38" width="5" height="3"/><rect x="28" y="38" width="5" height="3"/><rect x="42" y="38" width="5" height="3"/></g></svg>',
+    '<svg viewBox="0 0 64 64" fill="none" stroke="#490b58" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><rect x="8" y="10" width="48" height="44" rx="4"/><line x1="16" y1="22" x2="40" y2="22"/><line x1="16" y1="31" x2="48" y2="31"/><line x1="22" y1="40" x2="42" y2="40"/></svg>',
+    '<svg viewBox="0 0 64 64" fill="none" stroke="#490b58" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="12" width="48" height="40" rx="4"/><polyline points="16,26 24,32 16,38"/><line x1="28" y1="40" x2="40" y2="40"/></svg>',
+    '<svg viewBox="0 0 64 64" fill="none" stroke="#490b58" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><rect x="10" y="10" width="44" height="31" rx="3"/><line x1="32" y1="41" x2="32" y2="50"/><line x1="20" y1="52" x2="44" y2="52"/><rect x="16" y="16" width="14" height="10" fill="#C85070" stroke="none"/></svg>',
+    '<svg viewBox="0 0 64 64" fill="none" stroke="#490b58" stroke-width="2.5" aria-hidden="true"><circle cx="32" cy="32" r="21"/><ellipse cx="32" cy="32" rx="9" ry="21"/><line x1="11" y1="32" x2="53" y2="32"/><line x1="14" y1="21" x2="50" y2="21"/><line x1="14" y1="43" x2="50" y2="43"/></svg>',
+    '<svg viewBox="0 0 64 64" fill="none" stroke="#490b58" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><rect x="19" y="7" width="26" height="50" rx="5"/><line x1="28" y1="51" x2="36" y2="51"/><rect x="24" y="14" width="7" height="7" rx="1.5" fill="#C85070" stroke="none"/><rect x="33" y="14" width="7" height="7" rx="1.5" fill="#490b58" stroke="none"/><rect x="24" y="23" width="7" height="7" rx="1.5" fill="#490b58" stroke="none"/><rect x="33" y="23" width="7" height="7" rx="1.5" fill="#C85070" stroke="none"/></svg>'
+  ];
+  var ERAS = [
+    { y: '1940 – 1955', t: 'Programas hechos a mano',
+      d: 'Las primeras computadoras se programaban en lenguaje máquina (ceros y unos), a veces con tarjetas perforadas o moviendo cables. Cada programa se hacía para una sola máquina y casi no existía el sistema operativo.',
+      ex: ['Lenguaje máquina', 'Tarjetas perforadas'] },
+    { y: '1955 – 1970', t: 'Nacen los lenguajes de programación',
+      d: 'Aparecen lenguajes más parecidos al lenguaje humano y los primeros sistemas operativos que ejecutaban trabajos uno tras otro. Programar se volvió más fácil y más rápido.',
+      ex: ['FORTRAN (1957)', 'COBOL (1959)'] },
+    { y: '1970 – 1981', t: 'Sistemas operativos y programas para negocios',
+      d: 'Surge UNIX, un sistema operativo que permite que varias personas usen la misma computadora. Aparecen también los primeros programas que muchas personas quieren usar, como la hoja de cálculo.',
+      ex: ['UNIX (1969)', 'Lenguaje C', 'VisiCalc (1979)'] },
+    { y: '1981 – 1995', t: 'La computadora llega a casa y a la oficina',
+      d: 'Con las computadoras personales, el software de aplicación se vuelve muy popular: procesadores de texto, hojas de cálculo y juegos. Llegan los sistemas con ventanas e iconos, que facilitan usar la computadora.',
+      ex: ['MS-DOS (1981)', 'Windows (1985)', 'Word y Excel'] },
+    { y: '1995 – 2007', t: 'Internet lo cambia todo',
+      d: 'Aparecen los navegadores, el correo electrónico y las páginas web. El software libre cobra fuerza y muchos programas se descargan por Internet en lugar de comprarse en cajas.',
+      ex: ['Navegadores web', 'Linux (1991)', 'Descargas por Internet'] },
+    { y: '2007 – hoy', t: 'Apps, nube e inteligencia artificial',
+      d: 'Los celulares inteligentes traen las tiendas de apps. Mucho software ya no se instala: se usa por Internet (en la nube) y por suscripción. Hoy los asistentes de inteligencia artificial ya forman parte de muchas aplicaciones.',
+      ex: ['iPhone (2007)', 'Android (2008)', 'Servicios en la nube', 'Asistentes de IA'] }
+  ];
+  var era = 0;
+  function showEra() {
+    var E = ERAS[era];
+    $('eraCard').innerHTML = '<div class="era-icon">' + ICONS[era] + '</div><div><span class="era-years">' + E.y + '</span><h3>' + E.t + '</h3><p>' + E.d + '</p><div class="ex-chips">' +
+      E.ex.map(function (x) { return '<span>' + x + '</span>'; }).join('') + '</div></div>';
+    $('eraRange').value = era;
+    $('eraPrev').disabled = era === 0; $('eraNext').disabled = era === ERAS.length - 1;
+  }
+  $('eraRange').addEventListener('input', function () { era = parseInt(this.value, 10); showEra(); });
+  $('eraPrev').addEventListener('click', function () { if (era > 0) { era--; showEra(); } });
+  $('eraNext').addEventListener('click', function () { if (era < ERAS.length - 1) { era++; showEra(); } });
+  showEra();
+
+  /* ═════════ Estación 4 · Inventario ═════════ */
+  var GROUPS = [
+    { key: 'base', title: 'Software de base', items: ['Administrador de archivos (Explorador, Finder)', 'Antivirus o protección del sistema', 'Actualizaciones del sistema', 'Administrador de tareas o monitor del sistema'] },
+    { key: 'app', title: 'Software de aplicación', items: ['Navegador web', 'Mensajería (WhatsApp, Telegram...)', 'Redes sociales', 'Procesador de texto (Word, Docs)', 'Hoja de cálculo (Excel, Sheets)', 'Videollamadas (Zoom, Meet, Teams)', 'Música o video en línea', 'Juegos', 'Editor de fotos o video'] },
+    { key: 'dev', title: 'Herramientas de desarrollo', items: ['Editor de código (Visual Studio Code u otro)', 'Python u otro lenguaje instalado', 'Cuenta en GitHub o similar', 'Ninguna todavía'] }
+  ];
+  var inv = $('invGrid');
+  GROUPS.forEach(function (g) {
+    var box = document.createElement('div'); box.className = 'chk-group';
+    var h = document.createElement('h4'); h.textContent = g.title; box.appendChild(h);
+    g.items.forEach(function (it) {
+      var lab = document.createElement('label');
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.setAttribute('data-g', g.key); cb.value = it;
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(' ' + it)); box.appendChild(lab);
+    });
+    inv.appendChild(box);
+  });
+  $('iGen').addEventListener('click', function () {
+    var by = { base: [], app: [], dev: [] };
+    inv.querySelectorAll('input:checked').forEach(function (c) {
+      if (c.value === 'Ninguna todavía') return;
+      by[c.getAttribute('data-g')].push(c.value);
+    });
+    var ninguna = !!inv.querySelector('input[value="Ninguna todavía"]:checked');
+    var so = $('iSO').value;
+    var total = by.base.length + by.app.length + by.dev.length + (so !== 'no identificado' ? 1 : 0) + (ninguna ? 1 : 0);
+    if (!total) { $('iMsg').style.color = '#a12b2b'; $('iMsg').textContent = 'Marca al menos un elemento o elige tu sistema operativo.'; return; }
+    $('iMsg').textContent = '';
+    var baseTotal = by.base.length + (so !== 'no identificado' ? 1 : 0);
+    function setMeter(id, n, max) { $('m' + id).style.width = Math.min(100, Math.round(n / max * 100)) + '%'; $('m' + id + 'Txt').textContent = n + (n === 1 ? ' elemento' : ' elementos'); }
+    setMeter('Base', baseTotal, 5); setMeter('App', by.app.length, 9); setMeter('Dev', by.dev.length, 3);
+    var equipo = $('iEquipo').value.trim() || 'Mi equipo';
+    function line(l, a) { return l + ': ' + (a.length ? a.join('; ') : 'ninguno marcado'); }
+    $('iSummary').value = 'INVENTARIO DE SOFTWARE — ' + equipo + '\n' +
+      'Sistema operativo: ' + so + '\n' + line('Software de base (utilerías)', by.base) + '\n' + line('Software de aplicación', by.app) + '\n' +
+      line('Herramientas de desarrollo', ninguna && !by.dev.length ? ['ninguna todavía'] : by.dev) + '\n' +
+      'Total marcado: ' + (by.base.length + by.app.length + by.dev.length) + ' elementos (sin contar el sistema operativo).';
+    var com = [];
+    if (by.app.length > by.base.length + by.dev.length) com.push('Usas muchas aplicaciones: son los «inquilinos» más visibles de tu equipo.');
+    if (by.dev.length === 0) com.push('Todavía no tienes herramientas de desarrollo; es normal al empezar. Más adelante instalarás algunas.');
+    else com.push('Ya tienes herramientas de desarrollo: eso significa que puedes crear tus propios programas.');
+    if (so !== 'no identificado') com.push('Tu sistema operativo (' + so + ') es el software de base más importante de tu equipo.');
+    $('iComment').textContent = com.join(' ');
+    $('iOut').style.display = 'block';
+  });
+  $('iCopy').addEventListener('click', function () {
+    var box = $('iSummary'), msg = $('iCopyMsg');
+    function ok() { msg.style.color = '#1e6b3a'; msg.textContent = 'Resumen copiado.'; }
+    function fail() { msg.style.color = '#a12b2b'; msg.textContent = 'Selecciona el texto y cópialo manualmente.'; }
+    function old() { try { box.focus(); box.select(); document.execCommand('copy') ? ok() : fail(); } catch (e) { fail(); } }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(box.value).then(ok, old); } else { old(); }
+  });
+
+  /* ═════════ Autoevaluación ═════════ */
+  var QUIZ = [
+    { q: '¿Cuál es el programa que administra la computadora y permite que las demás aplicaciones funcionen?', o: ['Software de aplicación', 'Software de base (sistema operativo)', 'Herramienta de desarrollo'], a: 1,
+      e: 'El sistema operativo es software de base: hace de puente entre el hardware y las aplicaciones, como el administrador de un edificio.' },
+    { q: '¿Cuál de estos programas es una herramienta de desarrollo?', o: ['Spotify', 'Windows', 'Visual Studio Code'], a: 2,
+      e: 'Visual Studio Code es un editor para escribir código. Spotify es una aplicación y Windows es un sistema operativo.' },
+    { q: 'En la analogía del edificio, ¿qué representa el sistema operativo?', o: ['El administrador del edificio', 'Los inquilinos que usan los locales', 'Los cimientos de concreto'], a: 0,
+      e: 'El administrador reparte los recursos (luz y agua) y cuida que todos los inquilinos puedan trabajar sin estorbarse, igual que el sistema operativo.' },
+    { q: '¿Qué es un controlador (driver)?', o: ['Un tipo de cable', 'Un programa que enseña al sistema operativo a comunicarse con un dispositivo', 'Una aplicación para editar fotos'], a: 1,
+      e: 'Los controladores son software de base: permiten que el sistema operativo use piezas de hardware como la impresora o la tarjeta de video.' },
+    { q: '¿Qué hizo que los procesadores de texto y las hojas de cálculo se volvieran comunes en casas y oficinas?', o: ['Las tarjetas perforadas', 'Que las computadoras ya no necesitaban software', 'La llegada de las computadoras personales'], a: 2,
+      e: 'Cuando las computadoras personales llegaron a casas y oficinas (desde 1981), el software de aplicación se volvió muy popular.' }
+  ];
+  var quiz = $('quiz');
+  QUIZ.forEach(function (it, qi) {
+    var box = document.createElement('div'); box.className = 'q'; box.id = 'q' + qi;
+    var html = '<div class="q-text">' + (qi + 1) + '. ' + it.q + '</div>';
+    it.o.forEach(function (op, oi) { html += '<label><input type="radio" name="qq' + qi + '" value="' + oi + '"> ' + op + '</label>'; });
+    html += '<div class="q-expl"><strong>Explicación:</strong> ' + it.e + '</div>';
+    box.innerHTML = html; quiz.appendChild(box);
+  });
+  $('btnQuiz').addEventListener('click', function () {
+    var right = 0, answered = 0;
+    QUIZ.forEach(function (it, qi) {
+      var box = $('q' + qi), s = box.querySelector('input:checked');
+      box.classList.remove('right', 'wrong', 'shown');
+      box.querySelectorAll('label').forEach(function (l) { l.classList.remove('chosen'); });
+      if (!s) return;
+      answered++; s.parentNode.classList.add('chosen');
+      var ok = parseInt(s.value, 10) === it.a; if (ok) right++;
+      box.classList.add(ok ? 'right' : 'wrong', 'shown');
+    });
+    var r = $('quizResult');
+    if (answered < QUIZ.length) { r.textContent = 'Responde las ' + QUIZ.length + ' preguntas para ver tu resultado (te faltan ' + (QUIZ.length - answered) + ').'; return; }
+    r.textContent = 'Resultado: ' + right + ' de ' + QUIZ.length + '. ' + (right === QUIZ.length ? 'Excelente: dominas el tema.' : (right >= 3 ? 'Vas muy bien. Lee las explicaciones de las que fallaste.' : 'Regresa a las estaciones y vuelve a intentarlo.'));
+  });
+})();
+</script>
+
+</body>
+</html>
