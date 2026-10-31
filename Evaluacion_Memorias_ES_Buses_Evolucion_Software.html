@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación — Memorias, dispositivos de E/S, buses y evolución del software</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .info-list { list-style: none; }
+  .info-list li { display: grid; grid-template-columns: 190px 1fr; gap: .5rem; padding: .5rem 0; border-bottom: 1px dashed var(--border); font-size: .97rem; }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label { font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600; }
+  @media (max-width: 560px) { .info-list li { grid-template-columns: 1fr; gap: .15rem; } }
+
+  .btn { font-family: var(--font-ui); font-size: .88rem; font-weight: 600; cursor: pointer; background: var(--guinda); color: var(--white); border: 2px solid var(--guinda); padding: .6rem 1.2rem; border-radius: var(--radius-md); transition: background .15s, transform .1s; }
+  .btn:hover:not(:disabled) { background: var(--guinda-dark); }
+  .btn:active:not(:disabled) { transform: scale(.97); }
+  .btn.ghost { background: var(--white); color: var(--guinda); }
+  .btn.ghost:hover:not(:disabled) { background: var(--guinda-light); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, .qmap button:focus-visible, .opt:focus-within { outline: 3px solid var(--guinda-rule); outline-offset: 2px; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+
+  .field { margin-bottom: .9rem; }
+  .field label { display: block; font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600; margin-bottom: .25rem; }
+  .field input { width: 100%; font-family: var(--font-ui); font-size: 1rem; padding: .6rem .8rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); }
+  .field input:focus { outline: 2px solid var(--guinda-rule); border-color: var(--guinda); }
+  .field-grid { display: grid; grid-template-columns: 2fr 1fr; gap: .8rem; }
+  @media (max-width: 700px) { .field-grid { grid-template-columns: 1fr; gap: 0; } }
+  .form-error { color: #a12b2b; font-weight: 600; font-size: .9rem; min-height: 1.4em; margin: .4rem 0; }
+
+  .rules { list-style: none; margin: .5rem 0 0; }
+  .rules li { display: flex; gap: .7rem; padding: .45rem 0; font-size: .95rem; border-bottom: 1px dashed var(--border); }
+  .rules li:last-child { border-bottom: none; }
+  .rules .ico { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--guinda); color: #fff; font-family: var(--font-ui); font-size: .72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .honor { display: flex; gap: .7rem; align-items: flex-start; background: var(--guinda-light); border: 1px solid #D8A8BA; border-radius: var(--radius-md); padding: .9rem 1.1rem; margin: 1.2rem 0; font-size: .95rem; cursor: pointer; }
+  .honor input { width: 20px; height: 20px; margin-top: 3px; accent-color: #490b58; flex-shrink: 0; }
+
+  /* Evaluación */
+  .topbar { position: sticky; top: 0; z-index: 50; background: var(--white); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: .7rem 1.1rem; display: grid; grid-template-columns: 1fr auto auto; gap: 1rem; align-items: center; margin-bottom: 1.2rem; }
+  @media (max-width: 640px) { .topbar { grid-template-columns: 1fr 1fr; } .topbar .tb-name { grid-column: 1 / -1; } }
+  .tb-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tb-name small { display: block; font-weight: 500; color: var(--ink-muted); font-size: .68rem; }
+  .tb-box { text-align: center; font-family: var(--font-ui); }
+  .tb-box b { display: block; font-size: 1.3rem; color: var(--guinda); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tb-box span { font-size: .6rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); }
+  .tb-box.low b { color: #a12b2b; }
+  .tb-box.inf b { color: #1e6b3a; } .tb-box.inf.l1 b { color: #b26a00; } .tb-box.inf.l2 b, .tb-box.inf.l3 b { color: #a12b2b; }
+
+  .q-card { background: var(--white); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 1.4rem 1.5rem; box-shadow: var(--shadow-sm); }
+  .q-num { font-family: var(--font-ui); font-size: .74rem; text-transform: uppercase; letter-spacing: .12em; color: var(--guinda-mid); font-weight: 700; display: block; margin-bottom: .5rem; }
+  .q-text { font-size: 1.08rem; line-height: 1.55; margin-bottom: 1.1rem; font-weight: 600; }
+  .opt { display: flex; gap: .8rem; align-items: flex-start; padding: .8rem 1rem; margin: .5rem 0; border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font-size: .97rem; line-height: 1.5; transition: background .15s, border-color .15s; }
+  .opt:hover { background: var(--guinda-light); }
+  .opt input { margin-top: 4px; width: 18px; height: 18px; accent-color: #490b58; flex-shrink: 0; }
+  .opt.sel { border-color: var(--guinda); background: var(--guinda-light); }
+  .q-nav { display: flex; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-top: 1.2rem; }
+  .qmap { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1.2rem 0; }
+  .qmap button { width: 38px; height: 38px; font-family: var(--font-ui); font-size: .82rem; font-weight: 700; border: 2px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink-secondary); cursor: pointer; }
+  .qmap button.answered { background: var(--guinda-light); border-color: var(--guinda-rule); color: var(--guinda); }
+  .qmap button.current { background: var(--guinda); border-color: var(--guinda); color: #fff; }
+  .qmap-legend { font-family: var(--font-ui); font-size: .72rem; color: var(--ink-muted); }
+
+  /* Resultado */
+  .res-head { text-align: center; margin-bottom: 1.2rem; }
+  .res-head h2 { font-family: var(--font-display); font-size: 1.8rem; color: var(--guinda); }
+  .res-two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+  @media (max-width: 640px) { .res-two { grid-template-columns: 1fr; } }
+  .res-box { border: 3px solid var(--guinda); border-radius: var(--radius-lg); padding: 1.2rem 1rem; text-align: center; background: var(--white); }
+  .res-box .rb-label { font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase; letter-spacing: .14em; font-weight: 700; color: var(--guinda-mid); display: block; }
+  .res-box .rb-value { font-family: var(--font-display); font-size: 3.6rem; font-weight: 700; line-height: 1.1; display: block; color: var(--guinda); }
+  .res-box .rb-value small { font-size: 1.4rem; font-weight: 500; }
+  .res-box .rb-note { font-family: var(--font-ui); font-size: .86rem; font-weight: 600; display: block; margin-top: .2rem; }
+  .res-box.inf0 { border-color: #1e6b3a; background: #f0faf3; } .res-box.inf0 .rb-value, .res-box.inf0 .rb-note { color: #1e6b3a; }
+  .res-box.inf1 { border-color: #b26a00; background: #fff8ec; } .res-box.inf1 .rb-value, .res-box.inf1 .rb-note { color: #b26a00; }
+  .res-box.inf2, .res-box.inf3 { border-color: #a12b2b; background: #fdf0f0; } .res-box.inf2 .rb-value, .res-box.inf3 .rb-value, .res-box.inf2 .rb-note, .res-box.inf3 .rb-note { color: #a12b2b; }
+  .topic-row { display: grid; grid-template-columns: 220px 1fr 70px; gap: .8rem; align-items: center; margin: .5rem 0; font-family: var(--font-ui); font-size: .85rem; }
+  @media (max-width: 640px) { .topic-row { grid-template-columns: 1fr; gap: .2rem; } }
+  .topic-row .tr-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 14px; overflow: hidden; }
+  .topic-row .tr-bar div { height: 100%; background: linear-gradient(90deg, #C85070, #7B1034); }
+  .topic-row b { text-align: right; color: var(--guinda); }
+  .inf-table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: .6rem 0; }
+  .inf-table th, .inf-table td { border-bottom: 1px solid var(--border); padding: .45rem .6rem; text-align: left; }
+  .inf-none { font-family: var(--font-ui); font-size: .92rem; color: #1e6b3a; font-weight: 600; }
+  .stamp { font-family: var(--font-mono); font-size: .76rem; color: var(--ink-muted); margin-top: 1rem; text-align: center; }
+  .closed-note { background: #fdf0f0; border: 1px solid #a12b2b; color: #7d1f1f; border-radius: var(--radius-md); padding: .8rem 1rem; font-weight: 600; font-size: .93rem; margin-bottom: 1rem; }
+
+  /* Capas de protección */
+  #wm { position: fixed; inset: 0; z-index: 9000; pointer-events: none; background-repeat: repeat; display: none; }
+  body.state-exam #wm, body.state-result #wm { display: block; }
+  #veil { position: fixed; inset: 0; z-index: 9998; background: #2b0636; color: #fff; display: none; align-items: center; justify-content: center; text-align: center; padding: 2rem; font-family: var(--font-ui); font-size: 1.2rem; font-weight: 600; }
+  body.veil #veil { display: flex; }
+  .modal { position: fixed; inset: 0; z-index: 9999; background: rgba(26,18,21,.72); display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .modal.open { display: flex; }
+  .modal-box { background: #fff; border-radius: var(--radius-lg); max-width: 460px; width: 100%; padding: 1.6rem; border-top: 6px solid #a12b2b; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  .modal-box.neutral { border-top-color: var(--guinda); }
+  .modal-box h3 { font-family: var(--font-ui); font-size: 1.1rem; color: #a12b2b; margin-bottom: .5rem; }
+  .modal-box.neutral h3 { color: var(--guinda); }
+  .modal-box p { font-size: .95rem; margin-bottom: .8rem; }
+  .toast { position: fixed; left: 50%; bottom: 1.4rem; transform: translateX(-50%); background: #2b0636; color: #fff; font-family: var(--font-ui); font-size: .85rem; padding: .6rem 1.1rem; border-radius: 999px; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .toast.show { opacity: 1; }
+  .print-warning { display: none; }
+
+  body.state-exam, body.state-exam *, body.state-result, body.state-result * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .screen { display: none; }
+  body.state-intro #screenIntro, body.state-exam #screenExam, body.state-result #screenResult { display: block; }
+  body.state-exam .hero-hide, body.state-result .hero-hide { display: none; }
+
+  @media print {
+    #wm, #veil, .modal, .toast { display: none !important; }
+    body.state-exam > * { display: none !important; }
+    body.state-exam > .print-warning { display: block !important; padding: 2rem; font-size: 1.2rem; }
+    body.state-result .no-print { display: none !important; }
+    .res-box, .res-box * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .class-hero { padding: 1rem 2rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .toast, .opt, .btn { transition: none; } }
+</style>
+</head>
+<body class="state-intro">
+
+  <header class="site-header">
+    <div class="logo-wrap"><img src="imagen1.png" alt="Logo IEDEP"></div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Evaluación en línea — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero hero-hide">
+    <span class="class-label">Evaluación · Unidad 1 y Unidad 2</span>
+    <h1>Memorias, dispositivos de entrada y salida, buses y evolución del software</h1>
+    <span class="class-subtitle">Lee con calma y piensa cada respuesta. No se trata de memorizar: se trata de razonar con lo que aprendiste en clase.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Temas evaluados<span>1.3 Jerarquía de memorias · 1.4 Dispositivos de E/S y buses · 2.1 Evolución del software</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ PANTALLA 1: DATOS Y REGLAS ══════════════ -->
+    <div class="screen" id="screenIntro">
+      <section class="section">
+        <h2 class="section-title">Tus datos</h2>
+        <div class="card">
+          <div class="field-grid">
+            <div class="field"><label for="fNombre">Nombre completo</label><input type="text" id="fNombre" maxlength="60" autocomplete="off" placeholder="Nombre y apellidos"></div>
+            <div class="field"><label for="fGrupo">Grupo</label><input type="text" id="fGrupo" maxlength="20" autocomplete="off" placeholder="Ej. LSC-1A"></div>
+          </div>
+          <p class="text-muted">Estos datos aparecerán en una marca de agua sobre cada pantalla y en tu hoja de resultados.</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">Antes de comenzar, lee las reglas</h2>
+        <div class="card">
+          <ul class="rules">
+            <li><span class="ico">1</span><span><strong>Una sola oportunidad.</strong> La evaluación se puede presentar una vez en este dispositivo. Tiene <strong id="rNum">15</strong> preguntas de opción múltiple y dura <strong id="rMin">30</strong> minutos. Si el tiempo termina, se envía automáticamente lo que hayas contestado.</span></li>
+            <li><span class="ico">2</span><span><strong>Tu hoja de resultados</strong> mostrará, juntas y con tus datos, tu calificación y tus infracciones. No se muestran las respuestas correctas. Podrás guardarla como PDF para entregarla a tu docente.</span></li>
+            <li><span class="ico">3</span><span><strong>Para evitar infracciones sin querer:</strong> cierra otros programas, silencia las notificaciones, usa una conexión estable y no recargues la página.</span></li>
+          </ul>
+          <label class="honor"><input type="checkbox" id="fHonor"> <span>Declaro que resolveré esta evaluación de forma individual, sin ayuda de otras personas, buscadores ni herramientas de inteligencia artificial, y que entiendo que mis infracciones quedarán registradas.</span></label>
+          <div class="form-error" id="introError" role="alert"></div>
+          <div class="btn-row"><button class="btn" id="btnStart" type="button">Comenzar evaluación</button></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ══════════════ PANTALLA 2: EVALUACIÓN ══════════════ -->
+    <div class="screen" id="screenExam">
+      <div class="topbar" role="status">
+        <div class="tb-name"><span id="tbName"></span><small id="tbMat"></small></div>
+        <div class="tb-box" id="tbTimeBox"><b id="tbTime">--:--</b><span>Tiempo restante</span></div>
+        <div class="tb-box inf" id="tbInfBox"><b id="tbInf">0 / 5</b><span>Infracciones</span></div>
+      </div>
+      <div class="q-card" id="qCard"></div>
+      <div class="qmap" id="qMap" role="group" aria-label="Mapa de preguntas"></div>
+      <div class="qmap-legend">Número claro: sin contestar · Rosa: contestada · Guinda: pregunta actual</div>
+      <div class="btn-row" style="margin-top:1.2rem;">
+        <button class="btn" id="btnFinish" type="button">Finalizar y enviar</button>
+        <button class="btn ghost" id="btnFs" type="button" style="display:none;">Pantalla completa</button>
+      </div>
+    </div>
+
+    <!-- ══════════════ PANTALLA 3: RESULTADO ══════════════ -->
+    <div class="screen" id="screenResult">
+      <section class="section">
+        <div class="res-head"><h2>Hoja de resultados</h2><span class="text-muted">Evaluación de Introducción a los Sistemas Computacionales</span></div>
+        <div id="closedNote"></div>
+        <div class="card"><span class="card-title">Datos del estudiante</span><ul class="info-list" id="resData"></ul></div>
+        <div class="res-two">
+          <div class="res-box" id="boxGrade"><span class="rb-label">Calificación</span><span class="rb-value" id="rbGrade">—</span><span class="rb-note" id="rbGradeNote"></span></div>
+          <div class="res-box" id="boxInf"><span class="rb-label">Infracciones</span><span class="rb-value" id="rbInf">0</span><span class="rb-note" id="rbInfNote"></span></div>
+        </div>
+        <div class="card"><span class="card-title">Resultado por tema</span><div id="resTopics"></div></div>
+        <div class="card" style="margin-top:1rem;"><span class="card-title">Detalle de infracciones</span><div id="resInf"></div></div>
+        <p class="text-muted" style="margin-top:1rem;">La calificación académica se calcula solo con las respuestas correctas; las infracciones se informan por separado y tu docente decide cómo considerarlas.</p>
+        <div class="stamp" id="resStamp"></div>
+        <div class="btn-row no-print" style="margin-top:1.2rem; justify-content:center;">
+          <button class="btn" id="btnPdf" type="button">Guardar mi resultado en PDF</button>
+        </div>
+        <p class="text-muted no-print" style="text-align:center; margin-top:.6rem;">En la ventana que se abre, elige «Guardar como PDF» como destino y entrega el archivo a tu docente.</p>
+      </section>
+    </div>
+
+  </div>
+
+  <div class="print-warning">La impresión está deshabilitada durante la evaluación.</div>
+  <div id="wm" aria-hidden="true"></div>
+  <div id="veil" role="alert">Evaluación oculta. Regresa a esta ventana para continuar.</div>
+
+  <div class="modal" id="warnModal" role="alertdialog" aria-modal="true" aria-labelledby="warnTitle">
+    <div class="modal-box"><h3 id="warnTitle">Infracción registrada</h3><p id="warnText"></p><p id="warnCount" style="font-weight:700;"></p><button class="btn" id="warnOk" type="button">Entendido, continuar</button></div>
+  </div>
+  <div class="modal" id="confirmModal" role="alertdialog" aria-modal="true" aria-labelledby="confTitle">
+    <div class="modal-box neutral"><h3 id="confTitle">¿Enviar la evaluación?</h3><p id="confText"></p>
+      <div class="btn-row"><button class="btn ghost" id="confNo" type="button">Seguir contestando</button><button class="btn" id="confYes" type="button">Sí, enviar</button></div></div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Evaluación</span>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ═════════ Configuración (editable por el docente) ═════════ */
+  var CFG = {
+    clave: 'iedep_eval_isc_mem_es_sw_v1',   /* identifica esta evaluación en el dispositivo */
+    minutos: 30,                              /* duración total */
+    maxInfracciones: 5,                       /* al llegar a este número se cierra sola */
+    ventanaAgrupar: 1500                      /* ms: eventos casi simultáneos cuentan como uno */
+  };
+  var QUESTIONS = [{"id":"m1","topic":"mem","q":"Ana tiene una laptop con un procesador muy rápido, pero solo 2 GB de RAM. Cuando abre muchos programas a la vez, la computadora se vuelve muy lenta. ¿Cuál es la explicación más razonable?","o":["Ya no caben todos los programas en la RAM, así que el sistema recurre al almacenamiento secundario, que es mucho más lento.","La caché se llena y apaga el procesador para que no se caliente.","Los registros del CPU se borran cada vez que se abre una aplicación nueva.","El almacenamiento secundario es más rápido que la RAM, y por eso se satura."],"k":5671837820730288},{"id":"m2","topic":"mem","q":"Estás escribiendo un trabajo y todavía no lo has guardado. De pronto se va la luz y el equipo se apaga. Al encenderlo, el trabajo ya no está. ¿Por qué ocurrió?","o":["Porque el documento estaba en la RAM, que es volátil y pierde su contenido cuando se queda sin energía.","Porque el almacenamiento secundario es volátil y se vacía al apagarse.","Porque la caché guarda los documentos solo durante una semana.","Porque los registros del CPU envían todo al disco justo al apagarse."],"k":2209998037681103},{"id":"m3","topic":"mem","q":"Un compañero propone: «Para qué usar RAM y disco duro, mejor fabriquemos toda la memoria del equipo con tecnología de caché, que es la más rápida». ¿Cuál es el principal problema de su idea?","o":["La memoria tipo caché es muy cara por cada byte y de poca capacidad, así que el equipo costaría muchísimo o tendría muy poco espacio.","La caché solo puede guardar números, pero no texto ni imágenes.","La caché es más lenta que el disco duro.","La caché no se puede fabricar para equipos personales."],"k":7832401987141192},{"id":"m4","topic":"mem","q":"Si imaginamos que 1 nanosegundo durara 1 segundo, la RAM tardaría unos 100 segundos en entregar un dato, mientras que un disco duro mecánico tardaría meses. ¿Qué conclusión práctica se desprende de esto?","o":["Conviene tener en RAM y caché los datos que se usan con frecuencia, porque ir a buscarlos al disco es muchísimo más lento.","Conviene guardar siempre todo en el disco duro, porque así se mantiene más ordenado.","La RAM y el disco duro tienen prácticamente la misma velocidad.","El procesador es el único componente que influye en la velocidad del equipo."],"k":2589851838141796},{"id":"m5","topic":"mem","q":"Una caché con 4 espacios está vacía. El CPU solicita estos bloques de datos, en este orden: A, B, A, A, C. ¿Cuántos aciertos (hit) y cuántos fallos (miss) ocurren?","o":["2 aciertos y 3 fallos.","3 aciertos y 2 fallos.","1 acierto y 4 fallos.","5 aciertos y ningún fallo."],"k":1029823857025357},{"id":"e1","topic":"es","q":"Una impresora multifuncional imprime documentos y también escanea hojas. ¿Cómo se clasifica este dispositivo?","o":["Como dispositivo de entrada y salida: imprimir es salida y escanear es entrada.","Solo de salida, porque su función principal es imprimir.","Solo de entrada, porque está conectada al CPU.","Como un bus de comunicación, porque transporta datos."],"k":8271460093099096},{"id":"e2","topic":"es","q":"El CPU quiere guardar un dato en una ubicación específica de la memoria. ¿Qué bus indica en cuál ubicación se debe guardar?","o":["El bus de direcciones.","El bus de datos.","El bus de control.","Ninguno; la memoria decide sola dónde guardarlo."],"k":434936674591320},{"id":"e3","topic":"es","q":"Un bus de direcciones de 16 bits puede identificar 65,536 direcciones distintas. Si se amplía a 20 bits, ¿qué ocurre?","o":["Puede identificar 1,048,576 direcciones: 16 veces más, porque cada bit adicional duplica la cantidad.","Puede identificar 65,540 direcciones: solo 4 más.","Puede identificar 131,072 direcciones: el doble.","No cambia nada, porque el ancho del bus solo afecta la velocidad."],"k":1151359048319853},{"id":"e4","topic":"es","q":"Necesitas copiar un archivo de 4 GB. El puerto A es USB 2.0 (480 Mb/s) y el puerto B es USB 3.0 (5 Gb/s). Suponiendo que el dispositivo no limita la velocidad, ¿qué esperas?","o":["Con el puerto B tardará aproximadamente 10 veces menos que con el A.","Tardará lo mismo en los dos, porque el archivo es el mismo.","Con el puerto A tardará menos, porque 480 es un número mayor que 5.","Con el puerto B tardará solo la mitad que con el A."],"k":6514356375140654},{"id":"e5","topic":"es","q":"Presionas la tecla A y la letra aparece en el monitor. ¿Cuál es el recorrido correcto del dato?","o":["Teclado → controlador → buses → CPU y RAM → monitor.","Teclado → CPU y RAM → controlador → buses → monitor.","Teclado → monitor → CPU y RAM → buses → controlador.","Monitor → buses → CPU y RAM → controlador → teclado."],"k":2832179293682418},{"id":"s1","topic":"sw","q":"Antes de FORTRAN (1957) y COBOL (1959), se programaba en lenguaje máquina, con ceros y unos. ¿Por qué fueron un gran avance estos nuevos lenguajes?","o":["Porque se parecían más al lenguaje humano, y programar se volvió más fácil y rápido.","Porque eliminaron la necesidad de usar un procesador.","Porque permitieron descargar programas por Internet.","Porque hicieron que las computadoras ya no necesitaran electricidad."],"k":5323337674267585},{"id":"s2","topic":"sw","q":"¿Cuál de estas secuencias presenta los hitos del software en orden cronológico, del más antiguo al más reciente?","o":["Tarjetas perforadas → FORTRAN → UNIX → Windows → apps de celular.","FORTRAN → tarjetas perforadas → Windows → UNIX → apps de celular.","UNIX → tarjetas perforadas → apps de celular → FORTRAN → Windows.","Tarjetas perforadas → Windows → FORTRAN → apps de celular → UNIX."],"k":7067979510140405},{"id":"s3","topic":"sw","q":"En 1983, el dueño de una papelería compra una computadora personal para llevar sus cuentas y escribir cartas. ¿Qué tipo de software ayudó a que las computadoras llegaran a negocios y hogares como el suyo?","o":["Las aplicaciones, como los procesadores de texto y las hojas de cálculo.","Los asistentes de inteligencia artificial.","Las tiendas de apps para celulares.","Las tarjetas perforadas."],"k":2702539130697879},{"id":"s4","topic":"sw","q":"Entre 1995 y 2007, Internet cambió la forma de conseguir software. ¿Qué cambio ocurrió?","o":["Muchos programas comenzaron a descargarse por Internet, en lugar de comprarse solo en cajas.","Todos los programas dejaron de necesitar un sistema operativo.","Se volvió obligatorio programar en lenguaje máquina.","Los programas empezaron a guardarse en tarjetas perforadas."],"k":6281124317415053},{"id":"s5","topic":"sw","q":"Hoy muchas aplicaciones no se instalan en tu equipo: las usas por Internet y las pagas por suscripción. ¿Qué ventaja práctica tiene esto?","o":["Puedes usar el mismo servicio desde distintos dispositivos, porque el programa funciona en servidores en la nube.","El software ya no necesita ningún hardware para funcionar.","Ya no hace falta ningún tipo de conexión para usarlo.","El programa se guarda en tarjetas perforadas para mayor seguridad."],"k":8402563512463155}];
+  var TOPICS = { mem: 'Jerarquía de memorias (1.3)', es: 'Dispositivos de E/S y buses (1.4)', sw: 'Evolución del software (2.1)' };
+  var TYPES = {
+    cambio: 'Cambio de pestaña, ventana o aplicación',
+    captura: 'Intento de captura de pantalla',
+    copia: 'Intento de copiar, cortar, pegar o seleccionar',
+    herramientas: 'Intento de abrir herramientas, imprimir o guardar',
+    pantalla: 'Salida de la pantalla completa',
+    recarga: 'Recarga o reapertura de la página durante la evaluación'
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function hashStr(str) { /* cyrb53: evita guardar la clave de respuestas en texto plano */
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57, ch;
+    for (var i = 0; i < str.length; i++) {
+      ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmtDate(ts) { return new Date(ts).toLocaleString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+  function fmtHour(ts) { var d = new Date(ts); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+  function fmtDur(ms) { var s = Math.max(0, Math.round(ms / 1000)); return Math.floor(s / 60) + ' min ' + pad(s % 60) + ' s'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  /* ═════════ Estado y persistencia ═════════ */
+  var S = null, mem = null, unloading = false, graceUntil = 0, cur = 0, timerId = null, awayStart = 0, awayItem = null, fsActive = false, toastT = null;
+  function loadState() {
+    try { var s = localStorage.getItem(CFG.clave); return s ? JSON.parse(s) : null; } catch (e) { return mem ? JSON.parse(mem) : null; }
+  }
+  function saveState() {
+    var j = JSON.stringify(S);
+    try { localStorage.setItem(CFG.clave, j); } catch (e) { mem = j; }
+  }
+  function running() { return S && S.status === 'running'; }
+  function setScreen(name) { document.body.className = 'state-' + name + (document.body.classList.contains('veil') ? ' veil' : ''); window.scrollTo(0, 0); }
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+
+  /* ═════════ Marca de agua con el nombre ═════════ */
+  function makeWatermark() {
+    var cv = document.createElement('canvas'); cv.width = 380; cv.height = 220;
+    var x = cv.getContext('2d'); x.translate(190, 110); x.rotate(-Math.PI / 7); x.textAlign = 'center';
+    var nm = S.student.nombre, size = 16;
+    x.font = '700 ' + size + 'px Arial';
+    while (x.measureText(nm).width > 330 && size > 9) { size--; x.font = '700 ' + size + 'px Arial'; }
+    x.fillStyle = 'rgba(73,11,88,0.11)'; x.fillText(nm, 0, -6);
+    x.font = '12px Arial'; x.fillText('Grupo ' + S.student.grupo + ' · ' + S.folio, 0, 14);
+    $('wm').style.backgroundImage = 'url(' + cv.toDataURL() + ')';
+  }
+
+  /* ═════════ Infracciones ═════════ */
+  function infLevel(n, closed) { return closed ? 3 : (n === 0 ? 0 : (n <= 2 ? 1 : 2)); }
+  function updateBadge() {
+    var n = S.inf.length, b = $('tbInfBox');
+    $('tbInf').textContent = n + ' / ' + CFG.maxInfracciones;
+    b.className = 'tb-box inf' + (n === 0 ? '' : (n <= 2 ? ' l1' : ' l2'));
+  }
+  function reg(tipo) {
+    if (!running()) return null;
+    var now = Date.now(), last = S.inf[S.inf.length - 1];
+    if (last && now - last.t < CFG.ventanaAgrupar && (last.tipo === tipo || tipo === 'cambio' || tipo === 'pantalla')) return null;
+    var item = { t: now, tipo: tipo, fuera: 0 };
+    S.inf.push(item); saveState(); updateBadge();
+    if (S.inf.length >= CFG.maxInfracciones) { finish('infracciones'); return item; }
+    showWarn(item);
+    return item;
+  }
+  function showWarn(item) {
+    $('warnText').textContent = TYPES[item.tipo] + '. Este evento queda guardado y aparecerá en tu hoja de resultados.' + (item.fuera ? ' Estuviste fuera de la evaluación ' + item.fuera + ' s.' : '');
+    $('warnCount').textContent = 'Infracción ' + S.inf.length + ' de ' + CFG.maxInfracciones + '. Al llegar a ' + CFG.maxInfracciones + ', la evaluación se cierra.';
+    $('warnModal').classList.add('open');
+  }
+  $('warnOk').addEventListener('click', function () { $('warnModal').classList.remove('open'); });
+
+  function wipeClipboard() {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText('Contenido protegido: captura y copia no permitidas durante la evaluación.').catch(function () {}); } catch (e) {}
+  }
+
+  /* Cambio de pestaña / ventana */
+  function goAway() {
+    if (!running() || awayStart || unloading || Date.now() < graceUntil) return;
+    awayStart = Date.now();
+    document.body.classList.add('veil');
+    awayItem = reg('cambio');
+  }
+  function comeBack() {
+    if (!awayStart) { document.body.classList.remove('veil'); return; }
+    var secs = Math.round((Date.now() - awayStart) / 1000);
+    awayStart = 0;
+    document.body.classList.remove('veil');
+    if (running() && awayItem) { awayItem.fuera = secs; saveState(); if ($('warnModal').classList.contains('open')) showWarn(awayItem); }
+    awayItem = null;
+  }
+  window.addEventListener('beforeunload', function () { unloading = true; });
+  window.addEventListener('pagehide', function () { unloading = true; });
+  window.addEventListener('blur', goAway);
+  window.addEventListener('focus', comeBack);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) goAway(); else if (document.hasFocus()) comeBack(); });
+
+  /* Pantalla completa */
+  document.addEventListener('fullscreenchange', function () {
+    var inFs = !!document.fullscreenElement;
+    if (inFs) { fsActive = true; $('btnFs').style.display = 'none'; return; }
+    if (fsActive && running()) { fsActive = false; reg('pantalla'); $('btnFs').style.display = ''; }
+    fsActive = false;
+  });
+  function enterFs() {
+    var el = document.documentElement;
+    if (el.requestFullscreen) { try { el.requestFullscreen().catch(function () {}); } catch (e) {} }
+  }
+  $('btnFs').addEventListener('click', enterFs);
+
+  /* Teclado: captura de pantalla, copiar, herramientas */
+  function onKey(e) {
+    if (!running()) return;
+    var k = e.key, c = e.code, ctrl = e.ctrlKey || e.metaKey, sh = e.shiftKey;
+    if (k === 'PrintScreen' || c === 'PrintScreen' || (e.metaKey && sh && (c === 'Digit3' || c === 'Digit4' || c === 'Digit5' || c === 'KeyS')) || (e.ctrlKey && e.metaKey && sh && c === 'Digit4')) {
+      e.preventDefault(); wipeClipboard(); reg('captura'); return;
+    }
+    if (ctrl && !sh && !e.altKey && (c === 'KeyC' || c === 'KeyX' || c === 'KeyV' || c === 'KeyA' || c === 'Insert')) { e.preventDefault(); reg('copia'); return; }
+    if (ctrl && !e.altKey && (c === 'KeyP' || c === 'KeyS' || c === 'KeyU')) { e.preventDefault(); reg('herramientas'); return; }
+    if (k === 'F12' || (ctrl && sh && (c === 'KeyI' || c === 'KeyJ' || c === 'KeyC')) || (e.metaKey && e.altKey && (c === 'KeyI' || c === 'KeyJ' || c === 'KeyC' || c === 'KeyU'))) { e.preventDefault(); reg('herramientas'); }
+  }
+  window.addEventListener('keydown', onKey, true);
+  window.addEventListener('keyup', function (e) { if (running() && (e.key === 'PrintScreen' || e.code === 'PrintScreen')) { wipeClipboard(); reg('captura'); } }, true);
+
+  ['copy', 'cut', 'paste'].forEach(function (ev) {
+    document.addEventListener(ev, function (e) {
+      if (!running()) return;
+      e.preventDefault();
+      try { if (e.clipboardData) e.clipboardData.setData('text/plain', 'Contenido protegido'); } catch (x) {}
+      reg('copia');
+    }, true);
+  });
+  document.addEventListener('contextmenu', function (e) { if (document.body.classList.contains('state-exam') || document.body.classList.contains('state-result')) { e.preventDefault(); toast('El clic derecho está deshabilitado.'); } });
+  document.addEventListener('selectstart', function (e) { if (document.body.classList.contains('state-exam')) e.preventDefault(); });
+  document.addEventListener('dragstart', function (e) { if (!document.body.classList.contains('state-intro')) e.preventDefault(); });
+  window.addEventListener('beforeprint', function () { if (running()) reg('herramientas'); });
+
+  /* ═════════ Intro ═════════ */
+  $('rNum').textContent = QUESTIONS.length; $('rMin').textContent = CFG.minutos;
+  $('btnStart').addEventListener('click', function () {
+    var nombre = $('fNombre').value.trim().replace(/\s+/g, ' '), grupo = $('fGrupo').value.trim(), err = $('introError');
+    if (nombre.length < 5 || nombre.indexOf(' ') === -1) { err.textContent = 'Escribe tu nombre completo (nombre y apellidos).'; return; }
+    if (!grupo) { err.textContent = 'Escribe tu grupo.'; return; }
+    if (!$('fHonor').checked) { err.textContent = 'Debes aceptar la declaración para comenzar.'; return; }
+    err.textContent = '';
+    var idx = QUESTIONS.map(function (_, i) { return i; });
+    var order = shuffle(idx), opts = {};
+    QUESTIONS.forEach(function (q, i) { opts[i] = shuffle(q.o); });
+    S = { v: 1, student: { nombre: nombre, grupo: grupo }, folio: Math.random().toString(36).slice(2, 8).toUpperCase(),
+      start: Date.now(), end: 0, status: 'running', reason: '', order: order, opts: opts, answers: {}, inf: [], res: null };
+    saveState();
+    enterFs();
+    startExam();
+  });
+
+  /* ═════════ Evaluación ═════════ */
+  function startExam() {
+    graceUntil = Date.now() + 2500;
+    setScreen('exam');
+    $('tbName').textContent = S.student.nombre; $('tbMat').textContent = 'Grupo ' + S.student.grupo + ' · Folio ' + S.folio;
+    makeWatermark(); updateBadge(); buildMap(); showQ(0); tick();
+    if (document.documentElement.requestFullscreen && !document.fullscreenElement) $('btnFs').style.display = '';
+    clearInterval(timerId); timerId = setInterval(tick, 500);
+  }
+  function remaining() { return S.start + CFG.minutos * 60000 - Date.now(); }
+  function tick() {
+    if (!running()) return;
+    var r = remaining();
+    if (r <= 0) { finish('tiempo'); return; }
+    var s = Math.ceil(r / 1000);
+    $('tbTime').textContent = pad(Math.floor(s / 60)) + ':' + pad(s % 60);
+    $('tbTimeBox').className = 'tb-box' + (s <= 300 ? ' low' : '');
+  }
+  function buildMap() {
+    var m = $('qMap'); m.innerHTML = '';
+    S.order.forEach(function (qi, pos) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = pos + 1; b.setAttribute('aria-label', 'Ir a la pregunta ' + (pos + 1));
+      b.addEventListener('click', function () { showQ(pos); });
+      m.appendChild(b);
+    });
+  }
+  function refreshMap() {
+    var btns = $('qMap').children;
+    S.order.forEach(function (qi, pos) {
+      btns[pos].className = (S.answers[qi] !== undefined ? 'answered' : '') + (pos === cur ? ' current' : '');
+    });
+  }
+  function showQ(pos) {
+    cur = pos;
+    var qi = S.order[pos], q = QUESTIONS[qi], opts = S.opts[qi];
+    var html = '<span class="q-num">Pregunta ' + (pos + 1) + ' de ' + S.order.length + '</span><div class="q-text">' + esc(q.q) + '</div><div role="radiogroup" aria-label="Opciones de respuesta">';
+    opts.forEach(function (t, k) {
+      var sel = S.answers[qi] === t;
+      html += '<label class="opt' + (sel ? ' sel' : '') + '"><input type="radio" name="opt" value="' + k + '"' + (sel ? ' checked' : '') + '><span>' + esc(t) + '</span></label>';
+    });
+    html += '</div><div class="q-nav"><button class="btn ghost" id="qPrev" type="button"' + (pos === 0 ? ' disabled' : '') + '>Anterior</button><button class="btn" id="qNext" type="button"' + (pos === S.order.length - 1 ? ' disabled' : '') + '>Siguiente</button></div>';
+    $('qCard').innerHTML = html;
+    $('qCard').querySelectorAll('input[name="opt"]').forEach(function (inp) {
+      inp.addEventListener('change', function () {
+        if (!running()) return;
+        S.answers[qi] = opts[parseInt(inp.value, 10)]; saveState();
+        $('qCard').querySelectorAll('.opt').forEach(function (l) { l.classList.remove('sel'); });
+        inp.parentNode.classList.add('sel'); refreshMap();
+      });
+    });
+    $('qPrev').addEventListener('click', function () { if (cur > 0) showQ(cur - 1); });
+    $('qNext').addEventListener('click', function () { if (cur < S.order.length - 1) showQ(cur + 1); });
+    refreshMap();
+  }
+  $('btnFinish').addEventListener('click', function () {
+    var left = S.order.length - Object.keys(S.answers).length;
+    $('confText').textContent = left ? 'Te faltan ' + left + ' pregunta(s) sin contestar. Si envías ahora, contarán como incorrectas. Después de enviar no podrás cambiar tus respuestas.' : 'Contestaste todas las preguntas. Después de enviar no podrás cambiar tus respuestas.';
+    $('confirmModal').classList.add('open');
+  });
+  $('confNo').addEventListener('click', function () { $('confirmModal').classList.remove('open'); });
+  $('confYes').addEventListener('click', function () { $('confirmModal').classList.remove('open'); finish('enviado'); });
+
+  /* ═════════ Cierre y calificación ═════════ */
+  function grade() {
+    var ok = 0, by = { mem: [0, 0], es: [0, 0], sw: [0, 0] };
+    QUESTIONS.forEach(function (q, i) {
+      var sel = S.answers[i], good = sel !== undefined && hashStr(q.id + '|' + sel) === q.k;
+      by[q.topic][1]++; if (good) { ok++; by[q.topic][0]++; }
+    });
+    return { ok: ok, total: QUESTIONS.length, by: by };
+  }
+  function finish(reason) {
+    if (!running()) return;
+    S.status = 'done'; S.end = Date.now(); S.reason = reason; S.res = grade();
+    saveState(); clearInterval(timerId);
+    $('warnModal').classList.remove('open'); $('confirmModal').classList.remove('open');
+    document.body.classList.remove('veil'); awayStart = 0;
+    fsActive = false;
+    try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (e) {}
+    showResult();
+  }
+
+  /* ═════════ Resultado ═════════ */
+  function showResult() {
+    setScreen('result'); makeWatermark();
+    var n = S.inf.length, closed = S.reason === 'infracciones', lvl = infLevel(n, closed);
+    var r = S.res, grade10 = Math.round(r.ok / r.total * 100) / 10;
+    var msg = '';
+    if (S.reason === 'infracciones') msg = 'La evaluación se cerró automáticamente al alcanzar el límite de ' + CFG.maxInfracciones + ' infracciones. Se calificó con las respuestas contestadas hasta ese momento.';
+    else if (S.reason === 'tiempo') msg = 'El tiempo terminó y la evaluación se envió automáticamente con las respuestas contestadas.';
+    $('closedNote').innerHTML = msg ? '<div class="closed-note">' + esc(msg) + '</div>' : '';
+    var rows = [['Nombre', S.student.nombre], ['Grupo', S.student.grupo],
+      ['Programa educativo', 'Licenciatura en Sistemas Computacionales'], ['Asignatura', 'Introducción a los Sistemas Computacionales'],
+      ['Inicio', fmtDate(S.start)], ['Fin', fmtDate(S.end)], ['Tiempo utilizado', fmtDur(S.end - S.start) + ' de ' + CFG.minutos + ' min'], ['Folio', S.folio]];
+    $('resData').innerHTML = rows.map(function (x) { return '<li><span class="info-label">' + x[0] + '</span><span><strong>' + esc(x[1]) + '</strong></span></li>'; }).join('');
+    $('rbGrade').innerHTML = grade10.toFixed(1) + '<small> / 10</small>';
+    $('rbGradeNote').textContent = r.ok + ' respuestas correctas de ' + r.total;
+    $('boxInf').className = 'res-box inf' + lvl;
+    $('rbInf').textContent = n;
+    $('rbInfNote').textContent = ['Sin infracciones', 'Infracciones leves', 'Infracciones reiteradas', 'Límite de infracciones alcanzado'][lvl];
+    $('resTopics').innerHTML = Object.keys(TOPICS).map(function (k) {
+      var a = r.by[k]; var p = a[1] ? Math.round(a[0] / a[1] * 100) : 0;
+      return '<div class="topic-row"><span>' + TOPICS[k] + '</span><div class="tr-bar"><div style="width:' + p + '%"></div></div><b>' + a[0] + ' / ' + a[1] + '</b></div>';
+    }).join('');
+    if (!n) $('resInf').innerHTML = '<p class="inf-none">No se registró ninguna infracción durante la evaluación.</p>';
+    else $('resInf').innerHTML = '<table class="inf-table"><thead><tr><th>#</th><th>Hora</th><th>Tipo de infracción</th><th>Tiempo fuera</th></tr></thead><tbody>' +
+      S.inf.map(function (it, i) { return '<tr><td>' + (i + 1) + '</td><td>' + fmtHour(it.t) + '</td><td>' + esc(TYPES[it.tipo]) + '</td><td>' + (it.tipo === 'cambio' ? (it.fuera ? it.fuera + ' s' : 'no regresó') : '—') + '</td></tr>'; }).join('') + '</tbody></table>';
+    $('resStamp').textContent = 'Comprobante · ' + S.student.nombre + ' · Grupo ' + S.student.grupo + ' · Folio ' + S.folio + ' · Generado el ' + fmtDate(S.end);
+  }
+  $('btnPdf').addEventListener('click', function () { window.print(); });
+
+  /* ═════════ Arranque ═════════ */
+  (function init() {
+    S = loadState();
+    if (S && S.v === 1 && S.status === 'done') { showResult(); return; }
+    if (S && S.v === 1 && S.status === 'running') {
+      if (remaining() <= 0) { S.status = 'running'; finish('tiempo'); return; }
+      startExam();
+      reg('recarga');
+      return;
+    }
+    S = null; setScreen('intro');
+  })();
+})();
+</script>
+</body>
+</html>
