@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 2.2 — Funciones críticas del sistema operativo: procesos y memoria</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .mascot-tip {
+    display: flex; align-items: center; gap: 1.4rem;
+    background: var(--guinda-light); border: 1px solid #D8A8BA;
+    border-radius: var(--radius-lg); padding: 1.3rem 1.6rem; margin: 1.75rem 0;
+  }
+  .mascot-tip img { width: 82px; height: auto; flex-shrink: 0; }
+  .mascot-tip .mascot-label {
+    font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--guinda); font-weight: 700; display: block; margin-bottom: .3rem;
+  }
+  .mascot-tip p { font-size: .95rem; margin-bottom: 0; }
+  @media (max-width: 520px) { .mascot-tip { flex-direction: column; text-align: center; } }
+
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid; grid-template-columns: 190px 1fr; gap: .5rem;
+    padding: .5rem 0; border-bottom: 1px dashed var(--border); font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600;
+  }
+  @media (max-width: 560px) { .info-list li { grid-template-columns: 1fr; gap: .15rem; } }
+
+  /* Ruta de la clase */
+  .route { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6rem; margin: 1.25rem 0 0; counter-reset: stop; }
+  @media (max-width: 760px) { .route { grid-template-columns: 1fr 1fr; } }
+  .route a {
+    display: block; text-decoration: none; text-align: center;
+    background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: .7rem .5rem; font-family: var(--font-ui); font-size: .78rem; font-weight: 600; color: var(--ink);
+    transition: border-color .15s, transform .15s;
+  }
+  .route a:hover { border-color: var(--guinda); transform: translateY(-2px); text-decoration: none; color: var(--guinda); }
+  .route a::before {
+    counter-increment: stop; content: counter(stop);
+    display: block; width: 24px; height: 24px; line-height: 24px; margin: 0 auto .35rem;
+    border-radius: 50%; background: var(--guinda); color: var(--white); font-size: .72rem; font-weight: 700;
+  }
+
+  /* Contenedor de laboratorios */
+  .lab {
+    border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+    margin: 1.5rem 0; box-shadow: var(--shadow-sm); background: var(--off-white);
+  }
+  .lab-header {
+    background: var(--guinda); color: var(--white); padding: .7rem 1.4rem;
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; letter-spacing: .04em;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .lab-header .lab-tag { font-weight: 500; opacity: .8; text-transform: uppercase; font-size: .72rem; letter-spacing: .1em; }
+  .lab-body { padding: 1.3rem 1.5rem; }
+  .lab-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); font-weight: 700; display: block; margin: 1.4rem 0 .6rem; }
+  .lab-sub:first-child { margin-top: 0; }
+
+  .btn {
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; cursor: pointer;
+    background: var(--guinda); color: var(--white); border: 2px solid var(--guinda);
+    padding: .55rem 1.1rem; border-radius: var(--radius-md); transition: background .15s, transform .1s;
+  }
+  .btn:hover { background: var(--guinda-dark); }
+  .btn:active { transform: scale(.97); }
+  .btn.ghost { background: var(--white); color: var(--guinda); }
+  .btn.ghost:hover { background: var(--guinda-light); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, .chip-btn:focus-visible, .dv-opt:focus-visible, .node:focus-visible {
+    outline: 3px solid var(--guinda-rule); outline-offset: 2px;
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+  .chip-btn {
+    cursor: pointer; font-family: var(--font-ui); font-size: .8rem; font-weight: 600;
+    background: var(--white); color: var(--guinda); border: 2px solid var(--guinda);
+    padding: .45rem .9rem; border-radius: 999px; transition: background .15s;
+  }
+  .chip-btn:hover { background: var(--guinda-light); }
+  .chip-btn.active { background: var(--guinda); color: var(--white); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .stat { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .5rem; text-align: center; }
+  .stat b { display: block; font-family: var(--font-display); font-size: 1.4rem; color: var(--guinda); }
+  .stat span { font-family: var(--font-ui); font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); }
+
+  /* Mapa SVG */
+  .map-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .8rem; margin: 1.2rem 0; overflow-x: auto; }
+  .map-wrap svg { width: 100%; height: auto; min-width: 560px; display: block; }
+  .map-caption { font-family: var(--font-ui); font-size: .78rem; color: var(--ink-muted); text-align: center; margin-top: .4rem; }
+
+  /* Tabla de buses */
+  .tbl-wrap { overflow-x: auto; }
+
+  /* Estación 1: aduana de dispositivos */
+  .dv-card {
+    background: var(--white); border: 2px solid var(--guinda); border-radius: var(--radius-lg);
+    text-align: center; padding: 1.4rem 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-md);
+  }
+  .dv-card .dv-label { font-family: var(--font-ui); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-muted); display: block; }
+  .dv-card .dv-name { font-family: var(--font-display); font-size: 2rem; font-weight: 600; color: var(--guinda); display: block; margin: .3rem 0; line-height: 1.15; }
+  .dv-card .dv-hint { font-size: .9rem; color: var(--ink-secondary); display: block; }
+  .dv-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  @media (max-width: 560px) { .dv-opts { grid-template-columns: 1fr; } }
+  .dv-opt {
+    cursor: pointer; font-family: var(--font-ui); font-size: .85rem; font-weight: 700; text-align: center;
+    background: var(--surface); color: var(--guinda); border: 2px dashed var(--guinda-rule);
+    border-radius: var(--radius-md); padding: .9rem .5rem; transition: background .15s, transform .15s;
+  }
+  .dv-opt small { display: block; font-weight: 500; font-size: .7rem; color: var(--ink-muted); margin-top: .15rem; }
+  .dv-opt:hover:not(:disabled) { background: var(--guinda-light); transform: translateY(-2px); }
+  .dv-opt:disabled { cursor: default; }
+  .dv-opt.good { background: #e8f5ec; border: 2px solid #1e6b3a; color: #1e6b3a; }
+  .dv-opt.bad { background: #fbe9e9; border: 2px solid #a12b2b; color: #a12b2b; animation: shake .35s; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .dv-feedback { min-height: 3.4em; margin-top: .9rem; font-size: .93rem; }
+  .dv-feedback.ok { color: #1e6b3a; font-weight: 600; } .dv-feedback.bad { color: #a12b2b; font-weight: 600; }
+  .dv-progress { height: 8px; background: var(--surface); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 1rem; }
+  .dv-progress div { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .4s ease; }
+
+  /* Estación 2: viaje de un dato */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
+  .node {
+    background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md);
+    padding: .7rem .4rem; text-align: center; transition: background .3s, border-color .3s, color .3s, transform .3s;
+  }
+  .node .node-role { display: block; font-family: var(--font-ui); font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); }
+  .node .node-name { display: block; font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); margin-top: .2rem; line-height: 1.25; }
+  .node.passed { background: var(--guinda-light); border-color: var(--guinda-rule); }
+  .node.active { background: var(--guinda); border-color: var(--guinda); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .node.active .node-role, .node.active .node-name { color: var(--white); }
+  .flow-track { position: relative; height: 54px; margin-top: .5rem; }
+  .flow-track::before { content: ""; position: absolute; left: 10%; right: 10%; top: 50%; height: 4px; margin-top: -2px; background: repeating-linear-gradient(90deg, var(--guinda-rule) 0 10px, transparent 10px 18px); border-radius: 2px; }
+  .flow-stop { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--white); border: 3px solid var(--guinda-rule); }
+  .packet {
+    position: absolute; top: 50%; left: 10%; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+    transition: left .8s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 2px 3px rgba(73,11,88,.35));
+  }
+  .packet img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  @media (max-width: 700px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-track { display: none; }
+    .node { display: flex; align-items: center; gap: .8rem; text-align: left; padding: .6rem .9rem; }
+    .node .node-name { margin-top: 0; }
+  }
+  .flow-text { margin-top: 1rem; background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.3rem; }
+  .flow-text h3 { font-family: var(--font-ui); font-size: 1rem; color: var(--guinda); margin-bottom: .3rem; }
+  .flow-text p { font-size: .95rem; margin-bottom: 0; }
+
+  /* Estación 3: buses */
+  .lanes { display: grid; gap: .6rem; }
+  .lane {
+    display: grid; grid-template-columns: 170px 90px 1fr; gap: .8rem; align-items: center;
+    background: var(--white); border: 2px solid var(--border); border-radius: var(--radius-md); padding: .65rem .9rem;
+    transition: border-color .3s, background .3s;
+  }
+  .lane .ln-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .lane .ln-name small { display: block; font-size: .66rem; font-weight: 500; color: var(--ink-muted); }
+  .lane .ln-dir { font-family: var(--font-ui); font-size: .72rem; color: var(--ink-secondary); text-align: center; }
+  .lane .ln-dir b { display: block; font-size: 1.3rem; color: var(--guinda-rule); line-height: 1; }
+  .lane .ln-val { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--ink-muted); min-height: 1.6em; }
+  .lane.on { border-color: var(--guinda); background: var(--guinda-light); }
+  .lane.on .ln-val { color: var(--guinda); }
+  .lane.on .ln-dir b { color: var(--guinda); }
+  @media (max-width: 640px) { .lane { grid-template-columns: 1fr; gap: .2rem; } .lane .ln-dir { text-align: left; } .lane .ln-dir b { display: inline; margin-right: .4rem; } }
+
+  .calc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .calc-grid { grid-template-columns: 1fr; } }
+  .field label { display: block; font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600; margin-bottom: .25rem; }
+  .field input[type="number"], .field input[type="text"], .field select {
+    width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink);
+  }
+  .field input[type="range"] { width: 100%; accent-color: #490b58; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--guinda-rule); border-color: var(--guinda); }
+  .bits { display: flex; flex-wrap: wrap; gap: 2px; margin-top: .5rem; min-height: 16px; }
+  .bits i { display: block; width: 9px; height: 16px; border-radius: 2px; background: var(--guinda-rule); }
+  .bits.data i { background: var(--guinda); }
+  .calc-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: 1.1rem; }
+  @media (max-width: 760px) { .calc-out { grid-template-columns: 1fr; } }
+  .out-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .out-box .ob-label { font-family: var(--font-ui); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); display: block; }
+  .out-box .ob-value { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; color: var(--guinda); line-height: 1.2; display: block; word-break: break-word; }
+  .out-box .ob-note { font-size: .82rem; color: var(--ink-secondary); display: block; margin-top: .2rem; }
+
+  /* Estación 4: carrera */
+  .race-presets { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem 0 1rem; }
+  .race-size { display: grid; grid-template-columns: 1fr 120px; gap: .6rem; max-width: 360px; margin-bottom: .6rem; }
+  .race-row { display: grid; grid-template-columns: 190px 1fr 130px; gap: .8rem; align-items: center; margin: .55rem 0; }
+  @media (max-width: 700px) { .race-row { grid-template-columns: 1fr; gap: .25rem; margin: .9rem 0; } }
+  .race-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--ink); }
+  .race-name small { display: block; font-weight: 500; color: var(--ink-muted); font-size: .68rem; }
+  .race-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 22px; overflow: hidden; }
+  .race-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #C85070, #7B1034); }
+  .race-fill.run { transition: width 3s cubic-bezier(.25,.6,.3,1); }
+  .race-time { font-family: var(--font-mono); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .race-winner { color: #1e6b3a; }
+
+  /* Estación 5: ficha */
+  .chk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .chk-grid { grid-template-columns: 1fr; } }
+  .chk-group { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .chk-group h4 { font-family: var(--font-ui); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda); margin-bottom: .5rem; }
+  .chk-group label { display: flex; gap: .5rem; align-items: center; font-size: .9rem; padding: .22rem 0; cursor: pointer; }
+  .chk-group input { accent-color: #490b58; width: 16px; height: 16px; }
+  .ficha-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .ficha-fields { grid-template-columns: 1fr; } }
+  .summary-box {
+    width: 100%; min-height: 190px; font-family: var(--font-mono); font-size: .8rem; padding: .7rem .9rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); resize: vertical;
+  }
+
+  /* Quiz */
+  .q { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; margin-bottom: .9rem; }
+  .q .q-text { font-weight: 600; margin-bottom: .5rem; font-size: .96rem; }
+  .q label {
+    display: block; padding: .4rem .7rem; margin: .25rem 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; font-size: .92rem; transition: background .15s;
+  }
+  .q label:hover { background: var(--guinda-light); }
+  .q input { margin-right: .5rem; accent-color: #490b58; }
+  .q.right label.chosen { background: #e8f5ec; border-color: #1e6b3a; }
+  .q.wrong label.chosen { background: #fbe9e9; border-color: #a12b2b; }
+  .q .q-expl { display: none; font-size: .86rem; color: var(--ink-secondary); margin-top: .5rem; padding-left: .7rem; border-left: 3px solid var(--guinda-rule); }
+  .q.shown .q-expl { display: block; }
+  .quiz-result { font-family: var(--font-display); font-size: 1.3rem; color: var(--guinda); margin-top: .8rem; font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .packet, .node, .route a, .dv-progress div { transition: none; }
+    .race-fill.run { transition: none; }
+    .dv-opt.bad { animation: none; }
+  }
+
+  /* ═════ Estilos propios de la clase 2.2 ═════ */
+  .gloss { display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem; margin: 1rem 0; }
+  @media (max-width: 640px) { .gloss { grid-template-columns: 1fr; } }
+  .gloss div { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--guinda-rule); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: .7rem 1rem; font-size: .93rem; }
+  .gloss b { display: block; font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda); margin-bottom: .15rem; }
+
+  .detail-card { background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1.1rem 1.3rem; min-height: 280px; }
+  .detail-card h3 { font-family: var(--font-ui); font-size: 1.05rem; color: var(--guinda); margin-bottom: .2rem; }
+  .detail-card .detail-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); display: block; margin-bottom: .7rem; }
+  .detail-analogy { background: var(--guinda-light); border: 1px solid #D8A8BA; border-radius: var(--radius-sm); padding: .6rem .9rem; font-size: .9rem; margin-top: .6rem; }
+  .detail-analogy strong { color: var(--guinda-dark); }
+  .ex-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 0; }
+  .ex-chips span { font-family: var(--font-ui); font-size: .78rem; font-weight: 600; background: var(--guinda-light); color: var(--guinda-dark); border: 1px solid #D8A8BA; border-radius: 999px; padding: .2rem .7rem; }
+
+  /* Funciones del SO */
+  .fn-wrap { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 760px) { .fn-wrap { grid-template-columns: 1fr; } }
+  .fn-list { display: flex; flex-direction: column; gap: .5rem; }
+  .fn-btn { cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: .6rem; background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md); padding: .8rem 1rem; font-family: var(--font-ui); font-size: .9rem; font-weight: 700; color: var(--guinda); transition: border-color .15s, background .15s, transform .15s; }
+  .fn-btn:hover { border-color: var(--guinda); transform: translateX(3px); }
+  .fn-btn.active { background: var(--guinda); border-color: var(--guinda); color: var(--white); }
+  .fn-btn:focus-visible { outline: 3px solid var(--guinda-rule); outline-offset: 2px; }
+  .fn-tag { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; background: var(--guinda-rule); color: #fff; padding: .15rem .5rem; border-radius: 999px; white-space: nowrap; }
+  .fn-btn.active .fn-tag { background: #fff; color: var(--guinda); }
+
+  /* Estados del proceso */
+  .states { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
+  @media (max-width: 700px) { .states { grid-template-columns: 1fr; } }
+  .state { background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md); padding: .7rem .4rem; text-align: center; font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); transition: background .3s, color .3s, transform .3s, border-color .3s; }
+  .state small { display: block; font-size: .64rem; font-weight: 500; color: var(--ink-muted); margin-top: .1rem; }
+  .state.active { background: var(--guinda); border-color: var(--guinda); color: #fff; transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .state.active small { color: #F5E8EE; }
+  .flow-text { margin-top: 1rem; background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.3rem; }
+  .flow-text h3 { font-family: var(--font-ui); font-size: 1rem; color: var(--guinda); margin-bottom: .3rem; }
+  .flow-text p { font-size: .95rem; margin-bottom: 0; }
+
+  /* Planificador */
+  .gantt { margin: 1rem 0; overflow-x: auto; }
+  .g-row { display: grid; grid-template-columns: 150px 1fr; gap: .6rem; align-items: center; margin: .35rem 0; min-width: 440px; }
+  .g-name { font-family: var(--font-ui); font-size: .8rem; font-weight: 700; color: var(--ink); }
+  .g-cells { display: grid; gap: 2px; }
+  .g-cell { height: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; transition: background .25s; }
+  .g-axis { display: grid; gap: 2px; margin-left: calc(150px + .6rem); min-width: 290px; font-family: var(--font-ui); font-size: .62rem; color: var(--ink-muted); text-align: center; }
+  .g-clock { font-family: var(--font-ui); font-size: .85rem; font-weight: 700; color: var(--guinda); margin: .4rem 0; }
+  .sched-table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: .8rem 0; }
+  .sched-table th, .sched-table td { border-bottom: 1px solid var(--border); padding: .4rem .6rem; text-align: left; }
+  .sched-table th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: #fff; background: var(--guinda); }
+  @media (max-width: 560px) {
+    .g-row { grid-template-columns: 92px 1fr; min-width: 380px; }
+    .g-axis { margin-left: calc(92px + .6rem); min-width: 0; }
+    .g-name { font-size: .72rem; }
+  }
+
+  /* Memoria RAM */
+  .app-btns { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+  .app-btn { cursor: pointer; font-family: var(--font-ui); font-size: .8rem; font-weight: 600; background: var(--white); color: var(--ink); border: 2px solid var(--border-strong); border-radius: var(--radius-md); padding: .45rem .8rem .45rem .6rem; display: flex; align-items: center; gap: .45rem; transition: background .15s, border-color .15s; }
+  .app-btn i { width: 14px; height: 14px; border-radius: 3px; display: block; flex-shrink: 0; }
+  .app-btn small { color: var(--ink-muted); font-weight: 500; }
+  .app-btn:hover { background: var(--guinda-light); }
+  .app-btn.on { border-color: var(--guinda); background: var(--guinda-light); }
+  .app-btn:focus-visible { outline: 3px solid var(--guinda-rule); outline-offset: 2px; }
+  .ram-label { font-family: var(--font-ui); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); font-weight: 700; display: block; margin: .8rem 0 .4rem; }
+  .blocks { display: flex; flex-wrap: wrap; gap: 4px; }
+  .blk { width: 38px; height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: var(--font-ui); font-size: .62rem; font-weight: 700; color: #fff; border: 2px solid transparent; }
+  .blk.empty { background: var(--white); border: 2px dashed var(--border-strong); }
+  .blk.disk { border: 2px dashed #a12b2b; opacity: .85; }
+  .fluid { display: inline-block; font-family: var(--font-ui); font-size: .85rem; font-weight: 700; padding: .3rem .9rem; border-radius: 999px; color: #fff; }
+  .fluid.ok { background: #1e6b3a; } .fluid.mid { background: #b26a00; } .fluid.bad { background: #a12b2b; }
+  .ram-msg { margin-top: .9rem; font-size: .93rem; min-height: 3em; }
+
+  /* Observa tu equipo */
+  .os-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .6rem; }
+  .obs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .obs-grid { grid-template-columns: 1fr; } }
+  .field select { width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); }
+  .field input[type="number"], .field input[type="text"] { width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); }
+  .meter { margin: .55rem 0; }
+  .meter .m-top { display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: .8rem; font-weight: 600; margin-bottom: .25rem; }
+  .meter .m-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 18px; overflow: hidden; }
+  .meter .m-fill { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .6s ease; }
+  @media (prefers-reduced-motion: reduce) { .state, .fn-btn, .g-cell, .meter .m-fill { transition: none; } }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap"><img src="imagen1.png" alt="Logo IEDEP"></div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Guía de clase interactiva — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Unidad 2 · Software de Sistema y de Aplicación</span>
+    <h1>Funciones críticas del sistema operativo: gestión de procesos y de memoria</h1>
+    <span class="class-subtitle">¿Cómo puede tu computadora escuchar música, descargar un archivo y dejarte escribir un trabajo al mismo tiempo? Hoy conocerás al «administrador» que lo hace posible.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Fecha<span>Domingo 15 de noviembre de 2026</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha de la clase</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Unidad</span><span>2. Software de Sistema y de Aplicación</span></li>
+          <li><span class="info-label">Tema</span><span>2.2 Funciones críticas del Sistema Operativo (gestión de procesos y memoria)</span></li>
+          <li><span class="info-label">Fecha</span><span>Domingo 15 de noviembre de 2026</span></li>
+        </ul>
+      </div>
+
+      <span class="section-label">Competencias a desarrollar</span>
+      <div class="competency-card">
+        <span class="comp-num">01</span>
+        <span class="comp-text"><strong>Competencia de unidad:</strong> Contrastar los tipos de software y las funciones críticas del Sistema Operativo, a través de la revisión de esquemas de licenciamiento y administración de procesos, con el propósito de seleccionar las herramientas adecuadas respetando la normativa de propiedad intelectual y eficiencia técnica.</span>
+      </div>
+      <div class="competency-card">
+        <span class="comp-num">02</span>
+        <span class="comp-text"><strong>Competencia del tema:</strong> Describir las funciones críticas del sistema operativo, en particular la gestión de procesos y de memoria, mediante ejemplos cotidianos, para explicar cómo el equipo atiende varias tareas a la vez sin que se estorben entre sí.</span>
+      </div>
+
+      <span class="section-label" style="margin-top:1.5rem;">Ruta de la clase (haz clic para ir a cada estación)</span>
+      <nav class="route" aria-label="Ruta de la clase">
+        <a href="#e1">Conoce al administrador</a>
+        <a href="#e2">Procesos y turnos</a>
+        <a href="#e3">Llena la memoria</a>
+        <a href="#e4">Mira tu equipo</a>
+        <a href="#quizSec">Comprueba</a>
+      </nav>
+    </section>
+
+    <!-- ══════════════ INTRO ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Recordemos: el administrador del edificio</h2>
+      <p>En la clase pasada aprendiste que el <strong>sistema operativo</strong> es el software de base más importante. Lo comparamos con el administrador de un edificio de departamentos: reparte la luz y el agua, cuida las llaves y evita que los inquilinos se estorben.</p>
+      <p>Hoy vamos a ver <strong>qué hace exactamente</strong> ese administrador. Un sistema operativo tiene varias funciones, pero dos son las más importantes porque, sin ellas, la computadora no podría atender varias tareas a la vez: la <strong>gestión de procesos</strong> (quién usa el procesador y cuándo) y la <strong>gestión de memoria</strong> (quién usa cuánta RAM).</p>
+
+      <div class="concept-box">
+        <span class="concept-title">Analogía de hoy: una ventanilla y un estacionamiento</span>
+        <p>Imagina que el edificio tiene una sola <strong>ventanilla de atención</strong> (el procesador) y muchos inquilinos haciendo fila. El administrador decide a quién atender y por cuánto tiempo, para que nadie espere eternamente: eso es la <strong>gestión de procesos</strong>. Además, el edificio tiene un <strong>estacionamiento</strong> con espacios limitados (la memoria RAM). El administrador asigna un lugar a cada quien y cuida que nadie invada el espacio de otro: eso es la <strong>gestión de memoria</strong>.</p>
+      </div>
+
+      <h3 style="font-family:var(--font-ui); font-size:1rem; color:var(--guinda); margin:1.6rem 0 .3rem;">Palabras que usaremos hoy</h3>
+      <div class="gloss">
+        <div><b>Programa</b>Instrucciones guardadas en el disco. Mientras no lo abras, no hace nada.</div>
+        <div><b>Proceso</b>Un programa que ya se está ejecutando. Cada app abierta es al menos un proceso.</div>
+        <div><b>Multitarea</b>Poder tener varias tareas en marcha al mismo tiempo.</div>
+        <div><b>Planificador</b>La parte del sistema operativo que decide qué proceso usa el procesador y por cuánto tiempo.</div>
+        <div><b>Memoria virtual</b>Espacio del disco que el sistema usa como «RAM de emergencia» cuando la RAM se llena.</div>
+        <div><b>Turno (quantum)</b>El tiempo máximo que un proceso puede usar el procesador antes de ceder su lugar.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 1 ══════════════ -->
+    <section class="section" id="e1">
+      <h2 class="section-title">Estación 1 · Conoce al administrador</h2>
+      <p>El sistema operativo tiene cinco funciones principales. Haz clic en cada una para ver qué hace, su analogía y un ejemplo de tu vida diaria. Hoy nos concentraremos en las dos marcadas como «clave de hoy».</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Las funciones del sistema operativo</span><span class="lab-tag">Haz clic en una función</span></div>
+        <div class="lab-body">
+          <div class="fn-wrap">
+            <div class="fn-list" role="group" aria-label="Funciones del sistema operativo" id="fnList"></div>
+            <div class="detail-card" id="fnDetail" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 2 ══════════════ -->
+    <section class="section" id="e2">
+      <h2 class="section-title">Estación 2 · Procesos y turnos</h2>
+      <p>Un proceso no siempre está trabajando: pasa por varios <strong>estados</strong>. Y como el procesador solo puede atender a uno a la vez, el sistema operativo reparte <strong>turnos</strong>. Explóralo en dos partes.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Parte A · La vida de un proceso</span><span class="lab-tag">Avanza paso a paso</span></div>
+        <div class="lab-body">
+          <p style="font-size:.95rem;">Sigue la historia de un proceso: <strong>abres Word, escribes y guardas un archivo</strong>.</p>
+          <div class="states" id="states"></div>
+          <div class="flow-text" id="stateText" aria-live="polite"></div>
+          <div class="btn-row" style="margin-top:1rem;">
+            <button class="btn ghost" id="stPrev" type="button">Anterior</button>
+            <button class="btn" id="stNext" type="button">Siguiente paso</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab">
+        <div class="lab-header"><span>Parte B · El planificador reparte turnos</span><span class="lab-tag">Compara dos formas de atender</span></div>
+        <div class="lab-body">
+          <p style="font-size:.95rem;">Llegan tres procesos, <strong>en este orden</strong>: una descarga de video (6 unidades de tiempo), Word (3) y WhatsApp (2). Elige cómo los atiende el procesador y observa a quién le toca esperar.</p>
+          <div class="btn-row" role="group" aria-label="Forma de atender" style="margin-bottom:.8rem;">
+            <button class="chip-btn active" type="button" id="algFifo">Por orden de llegada</button>
+            <button class="chip-btn" type="button" id="algRr">Por turnos de 2 unidades</button>
+          </div>
+          <p class="text-muted" id="algDesc"></p>
+          <div class="g-clock" id="gClock" aria-live="polite"></div>
+          <div class="gantt" id="gantt"></div>
+          <div class="btn-row">
+            <button class="btn" id="gStep" type="button">Siguiente unidad de tiempo</button>
+            <button class="btn ghost" id="gPlay" type="button">Reproducir</button>
+            <button class="btn ghost" id="gReset" type="button">Reiniciar</button>
+          </div>
+          <div id="gResult" style="display:none;">
+            <table class="sched-table"><thead><tr><th>Proceso</th><th>Empieza en</th><th>Termina en</th><th>Tiempo de espera</th></tr></thead><tbody id="gRows"></tbody></table>
+            <div class="callout note"><p id="gInsight"></p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mascot-tip">
+      <img src="imagen2.png" alt="Mascota Mixtle">
+      <div>
+        <span class="mascot-label">Dato curioso</span>
+        <p>Cuando ves un video y escribes al mismo tiempo, en realidad cada núcleo del procesador hace una sola cosa a la vez. Lo que parece «al mismo tiempo» es el sistema operativo cambiando de un proceso a otro muchas veces por segundo, tan rápido que no lo notas. Es como un mesero muy veloz que atiende varias mesas y parece estar en todas a la vez.</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ ESTACIÓN 3 ══════════════ -->
+    <section class="section" id="e3">
+      <h2 class="section-title">Estación 3 · Llena la memoria</h2>
+      <p>La RAM es como un estacionamiento: cada programa abierto ocupa espacio y el sistema operativo lo asigna. En este laboratorio, cada cuadro representa <strong>1 GB</strong>. Elige cuánta RAM tiene tu «computadora» y abre programas. ¿Qué pasa cuando el estacionamiento se llena?</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Estacionamiento de la memoria RAM</span><span class="lab-tag">Valores de ejemplo</span></div>
+        <div class="lab-body">
+          <div class="field" style="max-width:260px; margin-bottom:1rem;">
+            <label for="ramSel">RAM de la computadora</label>
+            <select id="ramSel"><option value="4">4 GB</option><option value="8" selected>8 GB</option><option value="16">16 GB</option></select>
+          </div>
+          <span class="lab-sub" style="margin-top:0;">Haz clic para abrir o cerrar programas</span>
+          <div class="app-btns" id="appBtns" role="group" aria-label="Programas"></div>
+          <span class="ram-label">Memoria RAM</span>
+          <div class="blocks" id="ramBlocks"></div>
+          <span class="ram-label">Disco usado como memoria virtual (mucho más lento)</span>
+          <div class="blocks" id="diskBlocks"></div>
+          <div style="margin-top:1rem;"><span class="ram-label" style="display:inline; margin-right:.5rem;">Fluidez del equipo:</span><span class="fluid ok" id="fluid">Fluida</span></div>
+          <div class="ram-msg" id="ramMsg" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 4 ══════════════ -->
+    <section class="section" id="e4">
+      <h2 class="section-title">Estación 4 · Mira lo que hace tu sistema operativo</h2>
+      <p>Tu equipo tiene una herramienta que muestra los procesos y la memoria en tiempo real. Ábrela, anota lo que ves y genera un resumen. Servirá como material para el informe de caso práctico de la Unidad 2.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Radiografía de mi sistema operativo</span><span class="lab-tag">Se genera aquí, no se envía a ningún lado</span></div>
+        <div class="lab-body">
+          <span class="lab-sub" style="margin-top:0;">¿Dónde lo encuentro?</span>
+          <div class="os-tabs" id="osTabs" role="group" aria-label="Sistema operativo"></div>
+          <div class="detail-analogy" id="osHelp" style="margin-bottom:1rem;"></div>
+          <div class="obs-grid">
+            <div class="field"><label for="oSO">Mi sistema operativo</label>
+              <select id="oSO"><option value="no identificado">No lo sé</option><option>Windows</option><option>macOS</option><option>Linux</option><option>Android</option><option>iOS (iPhone)</option></select></div>
+            <div class="field"><label for="oRam">RAM total (GB)</label><input type="number" id="oRam" min="0" step="0.5" placeholder="Ej. 8"></div>
+            <div class="field"><label for="oUso">RAM en uso ahora (GB)</label><input type="number" id="oUso" min="0" step="0.1" placeholder="Ej. 5.2"></div>
+            <div class="field"><label for="oProc">Número aproximado de procesos</label><input type="number" id="oProc" min="0" step="1" placeholder="Ej. 150"></div>
+            <div class="field"><label for="oTop">Programa que más memoria usa</label><input type="text" id="oTop" maxlength="40" placeholder="Ej. Google Chrome"></div>
+            <div class="field"><label for="oDev">Equipo</label><input type="text" id="oDev" maxlength="40" placeholder="Ej. Laptop, celular..."></div>
+          </div>
+          <div class="btn-row"><button class="btn" id="oGen" type="button">Generar mi radiografía</button><span id="oMsg" style="font-size:.88rem; font-weight:600;" aria-live="polite"></span></div>
+          <div id="oOut" style="display:none; margin-top:1.2rem;">
+            <div class="meter"><div class="m-top"><span>RAM en uso</span><span id="mRamTxt"></span></div><div class="m-track"><div class="m-fill" id="mRam"></div></div></div>
+            <p id="oComment" style="font-size:.93rem; margin-top:.6rem;"></p>
+            <label for="oSummary" class="lab-sub" style="margin-top:.4rem;">Resumen para tus apuntes</label>
+            <textarea class="summary-box" id="oSummary" readonly></textarea>
+            <div class="btn-row" style="margin-top:.6rem;"><button class="btn ghost" id="oCopy" type="button">Copiar resumen</button><span id="oCopyMsg" style="font-size:.85rem;" aria-live="polite"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ AUTOEVALUACIÓN ══════════════ -->
+    <section class="section" id="quizSec">
+      <h2 class="section-title">Comprueba lo aprendido</h2>
+      <p>Cinco preguntas sencillas para saber cómo vas. No se registra ninguna calificación: es solo para ti.</p>
+      <div id="quiz"></div>
+      <button class="btn" id="btnQuiz" type="button">Comprobar mis respuestas</button>
+      <div class="quiz-result" id="quizResult" aria-live="polite"></div>
+    </section>
+
+    <!-- ══════════════ CONCLUSIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Conclusión</h2>
+      <p>El sistema operativo es el administrador que permite que muchas tareas convivan en una misma computadora. Con la <strong>gestión de procesos</strong>, su planificador reparte el procesador por turnos para que todos los programas avancen y el equipo se sienta fluido. Con la <strong>gestión de memoria</strong>, asigna la RAM a cada programa, evita que invadan el espacio de otros y, si la RAM se llena, recurre al disco como memoria virtual, a costa de la velocidad.</p>
+      <p>También vimos que un proceso pasa por distintos estados (nuevo, listo, en ejecución, en espera y terminado) y que abrir demasiados programas en un equipo con poca RAM lo vuelve lento. En la próxima sesión estudiaremos otro tema clave de la Unidad 2: los <strong>tipos de licenciamiento</strong> del software, es decir, bajo qué reglas puedes usar, copiar y modificar los programas.</p>
+    </section>
+
+    <!-- ══════════════ REFERENCIAS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Referencias bibliográficas</h2>
+      <p class="text-sm">Silberschatz, A., Galvin, P. B., y Gagne, G. (2021). <em>Operating System Concepts</em> (10.ª ed.). Wiley.</p>
+      <p class="text-sm">Tanenbaum, A. S., y Bos, H. (2023). <em>Modern Operating Systems</em> (5.ª ed.). Pearson.</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Unidad 2 · Tema 2.2</span>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  function fmt(n, d) { return n.toLocaleString('en-US', { maximumFractionDigits: d === undefined ? 0 : d }); }
+
+  /* ═════════ Estación 1 · Funciones del SO ═════════ */
+  var FNS = [
+    { k: 'proc', n: 'Gestión de procesos', tag: 'Clave de hoy', sub: 'Quién usa el procesador y cuándo',
+      d: 'Decide qué programa usa el procesador, por cuánto tiempo y en qué orden, para que varios programas avancen «al mismo tiempo». La parte encargada se llama planificador.',
+      a: 'El administrador organiza los turnos de la ventanilla para que todos los inquilinos sean atendidos y nadie espere eternamente.',
+      ex: ['Escuchar música mientras escribes', 'Descargar y navegar a la vez'] },
+    { k: 'mem', n: 'Gestión de memoria', tag: 'Clave de hoy', sub: 'Quién usa cuánta RAM',
+      d: 'Reparte la memoria RAM entre los programas, evita que uno invada el espacio de otro y, si la RAM se llena, usa el disco como memoria virtual.',
+      a: 'El administrador asigna un lugar de estacionamiento a cada inquilino. Si se llena, usa un estacionamiento externo, más lejano y lento.',
+      ex: ['Abrir muchas pestañas del navegador', 'Un juego que pide mucha RAM'] },
+    { k: 'arch', n: 'Gestión de archivos', tag: '', sub: 'Dónde y cómo se guarda la información',
+      d: 'Organiza la información en el disco mediante carpetas, nombres y permisos, para que puedas guardarla y volver a encontrarla.',
+      a: 'Es el archivero del edificio, con carpetas bien rotuladas.',
+      ex: ['Guardar tu tarea en una carpeta', 'Copiar fotos a una USB'] },
+    { k: 'disp', n: 'Gestión de dispositivos', tag: '', sub: 'Comunicación con el hardware',
+      d: 'Se comunica con el teclado, la pantalla, la impresora y demás dispositivos mediante los controladores (drivers) que vimos en la Unidad 1.',
+      a: 'Son los porteros de cada puerta de entrada y salida.',
+      ex: ['Conectar una impresora', 'Enchufar unos audífonos'] },
+    { k: 'seg', n: 'Seguridad y usuarios', tag: '', sub: 'Quién entra y qué puede hacer',
+      d: 'Controla quién puede usar el equipo y qué puede hacer cada persona, mediante cuentas, contraseñas y permisos.',
+      a: 'Son las llaves y la vigilancia del edificio.',
+      ex: ['Iniciar sesión con tu contraseña', 'Cuenta de administrador y cuenta de invitado'] }
+  ];
+  var fnList = $('fnList'), fnBtns = [];
+  function showFn(i) {
+    var F = FNS[i];
+    fnBtns.forEach(function (b, k) { b.classList.toggle('active', k === i); });
+    $('fnDetail').innerHTML = '<h3>' + F.n + '</h3><span class="detail-sub">' + F.sub + '</span><p style="font-size:.95rem;">' + F.d + '</p>' +
+      '<div class="detail-analogy"><strong>Analogía:</strong> ' + F.a + '</div>' +
+      '<div class="ex-chips" aria-label="Ejemplos">' + F.ex.map(function (e) { return '<span>' + e + '</span>'; }).join('') + '</div>';
+  }
+  FNS.forEach(function (F, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'fn-btn';
+    b.innerHTML = '<span>' + F.n + '</span>' + (F.tag ? '<span class="fn-tag">' + F.tag + '</span>' : '');
+    b.addEventListener('click', function () { showFn(i); });
+    fnList.appendChild(b); fnBtns.push(b);
+  });
+  showFn(0);
+
+  /* ═════════ Estación 2A · Estados del proceso ═════════ */
+  var STATES = [
+    { n: 'Nuevo', s: 'se está creando' }, { n: 'Listo', s: 'espera su turno' }, { n: 'En ejecución', s: 'usa el procesador' },
+    { n: 'En espera', s: 'espera algo (disco, usuario)' }, { n: 'Terminado', s: 'ya acabó' }
+  ];
+  var STORY = [
+    { st: 0, t: 'Haces doble clic en Word', d: 'El sistema operativo crea un proceso nuevo para Word, le reserva memoria y prepara todo lo necesario.' },
+    { st: 1, t: 'Word queda listo', d: 'Ya tiene lo necesario, pero el procesador está ocupado con otros procesos. Word espera su turno en la fila.' },
+    { st: 2, t: 'Es el turno de Word', d: 'El planificador le asigna el procesador. Word se abre y puedes escribir.' },
+    { st: 3, t: 'Pides guardar el archivo', d: 'Word debe esperar a que el disco termine de escribir. Mientras espera no necesita el procesador, así que pasa a «en espera» y otro proceso puede usarlo.' },
+    { st: 1, t: 'El disco terminó de guardar', d: 'Word ya puede continuar, pero tiene que volver a la fila de procesos listos.' },
+    { st: 2, t: 'Vuelve a su turno', d: 'El planificador vuelve a asignarle el procesador y puedes seguir escribiendo.' },
+    { st: 4, t: 'Cierras Word', d: 'El proceso termina. El sistema operativo libera la memoria RAM que usaba para que otros programas la aprovechen.' }
+  ];
+  var stStep = 0, stEls = [];
+  STATES.forEach(function (s) {
+    var d = document.createElement('div'); d.className = 'state'; d.innerHTML = s.n + '<small>' + s.s + '</small>';
+    $('states').appendChild(d); stEls.push(d);
+  });
+  function showState() {
+    var S = STORY[stStep];
+    stEls.forEach(function (e, i) { e.classList.toggle('active', i === S.st); });
+    $('stateText').innerHTML = '<h3>Paso ' + (stStep + 1) + ' de ' + STORY.length + ' · ' + S.t + '</h3><p>' + S.d + '</p>';
+    $('stPrev').disabled = stStep === 0; $('stNext').disabled = stStep === STORY.length - 1;
+  }
+  $('stNext').addEventListener('click', function () { if (stStep < STORY.length - 1) { stStep++; showState(); } });
+  $('stPrev').addEventListener('click', function () { if (stStep > 0) { stStep--; showState(); } });
+  showState();
+
+  /* ═════════ Estación 2B · Planificador ═════════ */
+  var PROCS = [{ n: 'Descarga de video', t: 6, c: '#3b5b92' }, { n: 'Word', t: 3, c: '#96324C' }, { n: 'WhatsApp', t: 2, c: '#1f7a6b' }];
+  var QUANTUM = 2, TOTAL = 11, alg = 'fifo', tcur = 0, gTimer = null;
+  function simulate(a) {
+    var rem = PROCS.map(function (p) { return p.t; }), slots = [], queue = [0, 1, 2], i, k;
+    if (a === 'fifo') { for (i = 0; i < 3; i++) for (k = 0; k < PROCS[i].t; k++) slots.push(i); }
+    else {
+      while (queue.length) {
+        i = queue.shift(); var run = Math.min(QUANTUM, rem[i]);
+        for (k = 0; k < run; k++) slots.push(i);
+        rem[i] -= run; if (rem[i] > 0) queue.push(i);
+      }
+    }
+    var stats = PROCS.map(function (p, idx) {
+      var first = slots.indexOf(idx), last = slots.lastIndexOf(idx) + 1;
+      return { start: first, end: last, wait: last - p.t };
+    });
+    return { slots: slots, stats: stats };
+  }
+  function avg(arr) { return arr.reduce(function (a, b) { return a + b; }, 0) / arr.length; }
+  var SIM = { fifo: simulate('fifo'), rr: simulate('rr') };
+  function buildGantt() {
+    var g = $('gantt'); g.innerHTML = '';
+    var sim = SIM[alg];
+    PROCS.forEach(function (p, i) {
+      var row = document.createElement('div'); row.className = 'g-row';
+      var html = '<div class="g-name">' + p.n + '<small style="display:block;font-weight:500;color:var(--ink-muted);">necesita ' + p.t + ' unidades</small></div><div class="g-cells" style="grid-template-columns:repeat(' + TOTAL + ',1fr);">';
+      for (var k = 0; k < TOTAL; k++) html += '<div class="g-cell" data-k="' + k + '" data-on="' + (sim.slots[k] === i ? 1 : 0) + '"></div>';
+      row.innerHTML = html + '</div>'; g.appendChild(row);
+    });
+    var ax = document.createElement('div'); ax.className = 'g-axis'; ax.style.gridTemplateColumns = 'repeat(' + TOTAL + ',1fr)';
+    for (var k = 0; k < TOTAL; k++) { var s = document.createElement('span'); s.textContent = k + 1; ax.appendChild(s); }
+    g.appendChild(ax);
+  }
+  function paintGantt() {
+    var sim = SIM[alg];
+    document.querySelectorAll('#gantt .g-row').forEach(function (row, i) {
+      row.querySelectorAll('.g-cell').forEach(function (c) {
+        var k = parseInt(c.getAttribute('data-k'), 10), on = c.getAttribute('data-on') === '1' && k < tcur;
+        c.style.background = on ? PROCS[i].c : '';
+      });
+    });
+    if (tcur === 0) $('gClock').textContent = 'Tiempo: 0 de ' + TOTAL + ' · Pulsa «Siguiente unidad de tiempo».';
+    else if (tcur < TOTAL) $('gClock').textContent = 'Tiempo: ' + tcur + ' de ' + TOTAL + ' · El procesador acaba de atender a: ' + PROCS[sim.slots[tcur - 1]].n;
+    else $('gClock').textContent = 'Tiempo: ' + TOTAL + ' de ' + TOTAL + ' · Todos los procesos terminaron.';
+    if (tcur >= TOTAL) showStats(); else $('gResult').style.display = 'none';
+    $('gStep').disabled = tcur >= TOTAL;
+  }
+  function showStats() {
+    var st = SIM[alg].stats;
+    $('gRows').innerHTML = PROCS.map(function (p, i) {
+      return '<tr><td>' + p.n + '</td><td>unidad ' + (st[i].start + 1) + '</td><td>unidad ' + st[i].end + '</td><td>' + st[i].wait + ' unidades</td></tr>';
+    }).join('');
+    var wa = 2; /* WhatsApp */
+    var firstFifo = avg(SIM.fifo.stats.map(function (x) { return x.start; })), firstRr = avg(SIM.rr.stats.map(function (x) { return x.start; }));
+    var txt;
+    if (alg === 'fifo') {
+      txt = 'Con orden de llegada, WhatsApp (que solo necesitaba 2 unidades) empezó a ser atendido hasta la unidad ' + (st[wa].start + 1) + ': tuvo que esperar a que terminaran la descarga y Word. En promedio, los procesos tardaron ' + fmt(firstFifo, 1) + ' unidades en recibir atención por primera vez. Es sencillo, pero un trabajo largo al frente de la fila retrasa a todos los demás.';
+    } else {
+      txt = 'Con turnos de ' + QUANTUM + ' unidades, WhatsApp empezó en la unidad ' + (st[wa].start + 1) + ' (en lugar de la ' + (SIM.fifo.stats[wa].start + 1) + ') y todos recibieron atención pronto: el promedio hasta la primera atención bajó de ' + fmt(firstFifo, 1) + ' a ' + fmt(firstRr, 1) + ' unidades. Por eso el equipo se siente fluido aunque haya un trabajo largo en marcha.';
+    }
+    $('gInsight').textContent = txt; $('gResult').style.display = 'block';
+  }
+  function setAlg(a) {
+    alg = a; stopG(); tcur = 0;
+    $('algFifo').classList.toggle('active', a === 'fifo'); $('algRr').classList.toggle('active', a === 'rr');
+    $('algDesc').textContent = a === 'fifo'
+      ? 'Orden de llegada: el procesador atiende a cada proceso hasta que termina y solo entonces pasa al siguiente.'
+      : 'Por turnos: cada proceso usa el procesador un máximo de 2 unidades; si no terminó, regresa al final de la fila y cede el lugar al siguiente.';
+    buildGantt(); paintGantt();
+  }
+  function stopG() { if (gTimer) { clearInterval(gTimer); gTimer = null; } $('gPlay').textContent = 'Reproducir'; }
+  $('algFifo').addEventListener('click', function () { setAlg('fifo'); });
+  $('algRr').addEventListener('click', function () { setAlg('rr'); });
+  $('gStep').addEventListener('click', function () { stopG(); if (tcur < TOTAL) { tcur++; paintGantt(); } });
+  $('gReset').addEventListener('click', function () { stopG(); tcur = 0; paintGantt(); });
+  $('gPlay').addEventListener('click', function () {
+    if (gTimer) { stopG(); return; }
+    if (tcur >= TOTAL) { tcur = 0; paintGantt(); }
+    $('gPlay').textContent = 'Pausar';
+    gTimer = setInterval(function () { if (tcur < TOTAL) { tcur++; paintGantt(); } if (tcur >= TOTAL) stopG(); }, 700);
+  });
+  setAlg('fifo');
+
+  /* ═════════ Estación 3 · Memoria RAM ═════════ */
+  var OS = { n: 'Sistema operativo', gb: 2, c: '#2b0636', a: 'SO' };
+  var APPS = [
+    { n: 'Navegador (varias pestañas)', gb: 2, c: '#3b5b92', a: 'Nav' },
+    { n: 'Word', gb: 1, c: '#691f35', a: 'W' },
+    { n: 'Videollamada', gb: 2, c: '#6b7a2b', a: 'Vid' },
+    { n: 'Juego', gb: 4, c: '#B0526C', a: 'Jue' },
+    { n: 'Música', gb: 1, c: '#b26a00', a: 'Mús' },
+    { n: 'Editor de código', gb: 1, c: '#1f7a6b', a: 'Ed' }
+  ];
+  var openOrder = [], ramBtns = [];
+  APPS.forEach(function (ap, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'app-btn'; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = '<i style="background:' + ap.c + '"></i>' + ap.n + ' <small>' + ap.gb + ' GB</small>';
+    b.addEventListener('click', function () {
+      var pos = openOrder.indexOf(i);
+      if (pos === -1) openOrder.push(i); else openOrder.splice(pos, 1);
+      renderRam();
+    });
+    $('appBtns').appendChild(b); ramBtns.push(b);
+  });
+  function blockEl(cls, ap, label) {
+    var d = document.createElement('div'); d.className = 'blk ' + cls;
+    if (ap) { d.style.background = ap.c; d.title = ap.n; d.textContent = label || ''; }
+    return d;
+  }
+  function renderRam() {
+    var cap = parseInt($('ramSel').value, 10), seq = [];
+    function push(ap) { for (var k = 0; k < ap.gb; k++) seq.push({ ap: ap, first: k === 0 }); }
+    push(OS); openOrder.forEach(function (i) { push(APPS[i]); });
+    var used = seq.length, over = Math.max(0, used - cap);
+    ramBtns.forEach(function (b, i) { var on = openOrder.indexOf(i) !== -1; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    var rb = $('ramBlocks'), db = $('diskBlocks'); rb.innerHTML = ''; db.innerHTML = '';
+    for (var k = 0; k < cap; k++) { rb.appendChild(k < seq.length ? blockEl('', seq[k].ap, seq[k].first ? seq[k].ap.a : '') : blockEl('empty')); }
+    if (over) { for (var j = cap; j < seq.length; j++) db.appendChild(blockEl('disk', seq[j].ap, seq[j].first ? seq[j].ap.a : '')); }
+    else { var e = document.createElement('span'); e.style.cssText = 'font-family:var(--font-ui);font-size:.82rem;color:var(--ink-muted);'; e.textContent = 'No se está usando el disco como memoria.'; db.appendChild(e); }
+    var f = $('fluid'), m = $('ramMsg');
+    if (used <= cap * 0.85) { f.className = 'fluid ok'; f.textContent = 'Fluida'; }
+    else if (used <= cap) { f.className = 'fluid mid'; f.textContent = 'Justa'; }
+    else if (over <= cap * 0.25) { f.className = 'fluid mid'; f.textContent = 'Lenta'; }
+    else { f.className = 'fluid bad'; f.textContent = 'Muy lenta'; }
+    if (!openOrder.length) m.textContent = 'Solo el sistema operativo está abierto y ya ocupa ' + OS.gb + ' GB. Abre programas para ver cómo se reparte la memoria.';
+    else if (used <= cap * 0.85) m.textContent = 'Hay espacio de sobra: usas ' + used + ' de ' + cap + ' GB de RAM. Cada programa tiene su lugar y el equipo responde con rapidez.';
+    else if (used <= cap) m.textContent = 'La RAM está casi llena (' + used + ' de ' + cap + ' GB). Todavía cabe todo, pero ya queda poco margen.';
+    else m.textContent = 'La RAM se llenó: faltan ' + over + ' GB. El sistema operativo mueve al disco lo que menos estás usando (memoria virtual). Como el disco es muchísimo más lento que la RAM, el equipo se pone lento. Cierra algún programa para recuperar espacio.';
+  }
+  $('ramSel').addEventListener('change', renderRam);
+  renderRam();
+
+  /* ═════════ Estación 4 · Radiografía ═════════ */
+  var OS_HELP = {
+    Windows: 'Presiona <strong>Ctrl + Mayús + Esc</strong> para abrir el Administrador de tareas. En la pestaña «Procesos» verás cada programa y cuánta memoria usa; en «Rendimiento → Memoria», la RAM total y en uso; y en «Rendimiento → CPU», el número de procesos.',
+    macOS: 'Presiona <strong>Cmd + Espacio</strong>, escribe «Monitor de Actividad» y ábrelo. En la pestaña «Memoria» verás la lista de procesos y, abajo, la memoria física y la usada. El número de procesos aparece abajo, en la pestaña «CPU».',
+    Android: 'Los menús cambian según la marca. Normalmente: <strong>Ajustes → Batería y cuidado del dispositivo → Memoria</strong> muestra la RAM usada y las apps abiertas. El celular no muestra todos los procesos, así que puedes dejar ese dato en blanco.',
+    iOS: 'El iPhone no muestra los procesos ni la RAM en uso. Puedes usar los datos de otro equipo (laptop o computadora) para esta actividad, o llenar solo el sistema operativo y el equipo.',
+    Linux: 'Abre el <strong>Monitor del sistema</strong> desde el menú de aplicaciones, o escribe <strong>top</strong> o <strong>htop</strong> en la terminal. Ahí verás los procesos y la memoria usada.'
+  };
+  var tabs = $('osTabs');
+  Object.keys(OS_HELP).forEach(function (k, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip-btn' + (i === 0 ? ' active' : ''); b.textContent = k === 'iOS' ? 'iPhone (iOS)' : k;
+    b.addEventListener('click', function () {
+      Array.prototype.forEach.call(tabs.children, function (x) { x.classList.remove('active'); }); b.classList.add('active');
+      $('osHelp').innerHTML = OS_HELP[k];
+    });
+    tabs.appendChild(b);
+  });
+  $('osHelp').innerHTML = OS_HELP.Windows;
+  $('oGen').addEventListener('click', function () {
+    var so = $('oSO').value, ram = parseFloat($('oRam').value), uso = parseFloat($('oUso').value), proc = parseInt($('oProc').value, 10);
+    var top = $('oTop').value.trim(), dev = $('oDev').value.trim() || 'Mi equipo';
+    var okRam = ram > 0 && uso >= 0 && uso <= ram * 1.5;
+    if (!okRam && so === 'no identificado' && !top) { $('oMsg').style.color = '#a12b2b'; $('oMsg').textContent = 'Anota al menos tu sistema operativo y los datos de RAM.'; return; }
+    $('oMsg').textContent = '';
+    var pct = okRam ? Math.min(100, Math.round(uso / ram * 100)) : 0;
+    $('mRam').style.width = pct + '%'; $('mRamTxt').textContent = okRam ? fmt(uso, 1) + ' de ' + fmt(ram, 1) + ' GB (' + pct + ' %)' : 'sin datos';
+    var com = [];
+    if (okRam) {
+      if (pct >= 85) com.push('Tu RAM está casi llena. Cuando esto pasa, el sistema operativo puede usar el disco como memoria virtual y el equipo se vuelve más lento.');
+      else if (pct >= 50) com.push('Tu uso de RAM es normal: hay programas abiertos, pero todavía queda margen.');
+      else com.push('Tienes mucha RAM libre: el sistema operativo no tiene que esforzarse para repartir la memoria.');
+    }
+    if (proc > 0) com.push('Tu equipo administra unos ' + fmt(proc) + ' procesos. Muchos son del propio sistema operativo y trabajan en segundo plano.');
+    if (top) com.push('«' + top + '» es el programa que más memoria usa: recuerda que cada app, y a veces cada pestaña, es uno o más procesos.');
+    if (!com.length) com.push('Anota más datos para obtener un comentario sobre tu equipo.');
+    $('oComment').textContent = com.join(' ');
+    $('oSummary').value = 'RADIOGRAFÍA DEL SISTEMA OPERATIVO — ' + dev + '\n' +
+      'Sistema operativo: ' + so + '\n' +
+      'RAM total: ' + (ram > 0 ? fmt(ram, 1) + ' GB' : 'sin dato') + '\n' +
+      'RAM en uso: ' + (okRam ? fmt(uso, 1) + ' GB (' + pct + ' %)' : 'sin dato') + '\n' +
+      'Procesos aproximados: ' + (proc > 0 ? fmt(proc) : 'sin dato') + '\n' +
+      'Programa que más memoria usa: ' + (top || 'sin dato');
+    $('oOut').style.display = 'block';
+  });
+  $('oCopy').addEventListener('click', function () {
+    var box = $('oSummary'), msg = $('oCopyMsg');
+    function ok() { msg.style.color = '#1e6b3a'; msg.textContent = 'Resumen copiado.'; }
+    function fail() { msg.style.color = '#a12b2b'; msg.textContent = 'Selecciona el texto y cópialo manualmente.'; }
+    function old() { try { box.focus(); box.select(); document.execCommand('copy') ? ok() : fail(); } catch (e) { fail(); } }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(box.value).then(ok, old); } else { old(); }
+  });
+
+  /* ═════════ Autoevaluación ═════════ */
+  var QUIZ = [
+    { q: '¿Qué es un proceso?', o: ['Un programa guardado en el disco que todavía no se ha abierto', 'Un programa que ya se está ejecutando', 'Una pieza física del procesador'], a: 1,
+      e: 'Un programa es solo el conjunto de instrucciones guardado en el disco. Cuando lo abres y empieza a ejecutarse, se convierte en un proceso.' },
+    { q: '¿Para qué sirve el planificador del sistema operativo?', o: ['Para decidir qué proceso usa el procesador y por cuánto tiempo', 'Para escribir programas nuevos', 'Para conectar la computadora a Internet'], a: 0,
+      e: 'El planificador es el encargado de repartir el procesador entre los procesos, como el administrador que organiza los turnos de la ventanilla.' },
+    { q: 'Abres tantos programas que la RAM se llena. ¿Qué hace el sistema operativo?', o: ['Apaga la computadora para proteger los datos', 'Aumenta automáticamente la cantidad de RAM física', 'Mueve parte de lo que menos usas al disco (memoria virtual), pero el equipo se vuelve más lento'], a: 2,
+      e: 'La memoria virtual evita que el equipo se detenga, pero como el disco es mucho más lento que la RAM, se nota la lentitud.' },
+    { q: 'Un programa está esperando a que el disco termine de guardar un archivo. ¿En qué estado está?', o: ['Terminado', 'En ejecución', 'En espera (bloqueado)', 'Nuevo'], a: 2,
+      e: 'Mientras espera al disco no necesita el procesador, así que pasa al estado «en espera» y otro proceso puede usar el procesador.' },
+    { q: '¿Qué ventaja tiene repartir el procesador por turnos?', o: ['Todos los procesos reciben atención pronto, aunque haya un trabajo largo en marcha', 'El procesador trabaja a mayor velocidad', 'Se necesita menos memoria RAM'], a: 0,
+      e: 'Con turnos, un proceso largo no bloquea a los cortos: todos avanzan y el equipo se siente fluido.' }
+  ];
+  var quiz = $('quiz');
+  QUIZ.forEach(function (it, qi) {
+    var box = document.createElement('div'); box.className = 'q'; box.id = 'q' + qi;
+    var html = '<div class="q-text">' + (qi + 1) + '. ' + it.q + '</div>';
+    it.o.forEach(function (op, oi) { html += '<label><input type="radio" name="qq' + qi + '" value="' + oi + '"> ' + op + '</label>'; });
+    html += '<div class="q-expl"><strong>Explicación:</strong> ' + it.e + '</div>';
+    box.innerHTML = html; quiz.appendChild(box);
+  });
+  $('btnQuiz').addEventListener('click', function () {
+    var right = 0, answered = 0;
+    QUIZ.forEach(function (it, qi) {
+      var box = $('q' + qi), s = box.querySelector('input:checked');
+      box.classList.remove('right', 'wrong', 'shown');
+      box.querySelectorAll('label').forEach(function (l) { l.classList.remove('chosen'); });
+      if (!s) return;
+      answered++; s.parentNode.classList.add('chosen');
+      var ok = parseInt(s.value, 10) === it.a; if (ok) right++;
+      box.classList.add(ok ? 'right' : 'wrong', 'shown');
+    });
+    var r = $('quizResult');
+    if (answered < QUIZ.length) { r.textContent = 'Responde las ' + QUIZ.length + ' preguntas para ver tu resultado (te faltan ' + (QUIZ.length - answered) + ').'; return; }
+    r.textContent = 'Resultado: ' + right + ' de ' + QUIZ.length + '. ' + (right === QUIZ.length ? 'Excelente: dominas el tema.' : (right >= 3 ? 'Vas muy bien. Lee las explicaciones de las que fallaste.' : 'Regresa a las estaciones y vuelve a intentarlo.'));
+  });
+})();
+</script>
+
+</body>
+</html>
