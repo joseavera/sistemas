@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clase 2.3 — Tipos de licenciamiento: software libre, propietario y SaaS</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .mascot-tip {
+    display: flex; align-items: center; gap: 1.4rem;
+    background: var(--guinda-light); border: 1px solid #D8A8BA;
+    border-radius: var(--radius-lg); padding: 1.3rem 1.6rem; margin: 1.75rem 0;
+  }
+  .mascot-tip img { width: 82px; height: auto; flex-shrink: 0; }
+  .mascot-tip .mascot-label {
+    font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--guinda); font-weight: 700; display: block; margin-bottom: .3rem;
+  }
+  .mascot-tip p { font-size: .95rem; margin-bottom: 0; }
+  @media (max-width: 520px) { .mascot-tip { flex-direction: column; text-align: center; } }
+
+  .info-list { list-style: none; }
+  .info-list li {
+    display: grid; grid-template-columns: 190px 1fr; gap: .5rem;
+    padding: .5rem 0; border-bottom: 1px dashed var(--border); font-size: .97rem;
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-list .info-label {
+    font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600;
+  }
+  @media (max-width: 560px) { .info-list li { grid-template-columns: 1fr; gap: .15rem; } }
+
+  /* Ruta de la clase */
+  .route { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6rem; margin: 1.25rem 0 0; counter-reset: stop; }
+  @media (max-width: 760px) { .route { grid-template-columns: 1fr 1fr; } }
+  .route a {
+    display: block; text-decoration: none; text-align: center;
+    background: var(--off-white); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: .7rem .5rem; font-family: var(--font-ui); font-size: .78rem; font-weight: 600; color: var(--ink);
+    transition: border-color .15s, transform .15s;
+  }
+  .route a:hover { border-color: var(--guinda); transform: translateY(-2px); text-decoration: none; color: var(--guinda); }
+  .route a::before {
+    counter-increment: stop; content: counter(stop);
+    display: block; width: 24px; height: 24px; line-height: 24px; margin: 0 auto .35rem;
+    border-radius: 50%; background: var(--guinda); color: var(--white); font-size: .72rem; font-weight: 700;
+  }
+
+  /* Contenedor de laboratorios */
+  .lab {
+    border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+    margin: 1.5rem 0; box-shadow: var(--shadow-sm); background: var(--off-white);
+  }
+  .lab-header {
+    background: var(--guinda); color: var(--white); padding: .7rem 1.4rem;
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; letter-spacing: .04em;
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .lab-header .lab-tag { font-weight: 500; opacity: .8; text-transform: uppercase; font-size: .72rem; letter-spacing: .1em; }
+  .lab-body { padding: 1.3rem 1.5rem; }
+  .lab-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); font-weight: 700; display: block; margin: 1.4rem 0 .6rem; }
+  .lab-sub:first-child { margin-top: 0; }
+
+  .btn {
+    font-family: var(--font-ui); font-size: .85rem; font-weight: 600; cursor: pointer;
+    background: var(--guinda); color: var(--white); border: 2px solid var(--guinda);
+    padding: .55rem 1.1rem; border-radius: var(--radius-md); transition: background .15s, transform .1s;
+  }
+  .btn:hover { background: var(--guinda-dark); }
+  .btn:active { transform: scale(.97); }
+  .btn.ghost { background: var(--white); color: var(--guinda); }
+  .btn.ghost:hover { background: var(--guinda-light); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible, .chip-btn:focus-visible, .dv-opt:focus-visible, .node:focus-visible {
+    outline: 3px solid var(--guinda-rule); outline-offset: 2px;
+  }
+  .btn-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+  .chip-btn {
+    cursor: pointer; font-family: var(--font-ui); font-size: .8rem; font-weight: 600;
+    background: var(--white); color: var(--guinda); border: 2px solid var(--guinda);
+    padding: .45rem .9rem; border-radius: 999px; transition: background .15s;
+  }
+  .chip-btn:hover { background: var(--guinda-light); }
+  .chip-btn.active { background: var(--guinda); color: var(--white); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .stat { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .5rem; text-align: center; }
+  .stat b { display: block; font-family: var(--font-display); font-size: 1.4rem; color: var(--guinda); }
+  .stat span { font-family: var(--font-ui); font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); }
+
+  /* Mapa SVG */
+  .map-wrap { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .8rem; margin: 1.2rem 0; overflow-x: auto; }
+  .map-wrap svg { width: 100%; height: auto; min-width: 560px; display: block; }
+  .map-caption { font-family: var(--font-ui); font-size: .78rem; color: var(--ink-muted); text-align: center; margin-top: .4rem; }
+
+  /* Tabla de buses */
+  .tbl-wrap { overflow-x: auto; }
+
+  /* Estación 1: aduana de dispositivos */
+  .dv-card {
+    background: var(--white); border: 2px solid var(--guinda); border-radius: var(--radius-lg);
+    text-align: center; padding: 1.4rem 1rem; margin-bottom: 1rem; box-shadow: var(--shadow-md);
+  }
+  .dv-card .dv-label { font-family: var(--font-ui); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-muted); display: block; }
+  .dv-card .dv-name { font-family: var(--font-display); font-size: 2rem; font-weight: 600; color: var(--guinda); display: block; margin: .3rem 0; line-height: 1.15; }
+  .dv-card .dv-hint { font-size: .9rem; color: var(--ink-secondary); display: block; }
+  .dv-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+  @media (max-width: 560px) { .dv-opts { grid-template-columns: 1fr; } }
+  .dv-opt {
+    cursor: pointer; font-family: var(--font-ui); font-size: .85rem; font-weight: 700; text-align: center;
+    background: var(--surface); color: var(--guinda); border: 2px dashed var(--guinda-rule);
+    border-radius: var(--radius-md); padding: .9rem .5rem; transition: background .15s, transform .15s;
+  }
+  .dv-opt small { display: block; font-weight: 500; font-size: .7rem; color: var(--ink-muted); margin-top: .15rem; }
+  .dv-opt:hover:not(:disabled) { background: var(--guinda-light); transform: translateY(-2px); }
+  .dv-opt:disabled { cursor: default; }
+  .dv-opt.good { background: #e8f5ec; border: 2px solid #1e6b3a; color: #1e6b3a; }
+  .dv-opt.bad { background: #fbe9e9; border: 2px solid #a12b2b; color: #a12b2b; animation: shake .35s; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .dv-feedback { min-height: 3.4em; margin-top: .9rem; font-size: .93rem; }
+  .dv-feedback.ok { color: #1e6b3a; font-weight: 600; } .dv-feedback.bad { color: #a12b2b; font-weight: 600; }
+  .dv-progress { height: 8px; background: var(--surface); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 1rem; }
+  .dv-progress div { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .4s ease; }
+
+  /* Estación 2: viaje de un dato */
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
+  .node {
+    background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md);
+    padding: .7rem .4rem; text-align: center; transition: background .3s, border-color .3s, color .3s, transform .3s;
+  }
+  .node .node-role { display: block; font-family: var(--font-ui); font-size: .62rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-muted); }
+  .node .node-name { display: block; font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); margin-top: .2rem; line-height: 1.25; }
+  .node.passed { background: var(--guinda-light); border-color: var(--guinda-rule); }
+  .node.active { background: var(--guinda); border-color: var(--guinda); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .node.active .node-role, .node.active .node-name { color: var(--white); }
+  .flow-track { position: relative; height: 54px; margin-top: .5rem; }
+  .flow-track::before { content: ""; position: absolute; left: 10%; right: 10%; top: 50%; height: 4px; margin-top: -2px; background: repeating-linear-gradient(90deg, var(--guinda-rule) 0 10px, transparent 10px 18px); border-radius: 2px; }
+  .flow-stop { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--white); border: 3px solid var(--guinda-rule); }
+  .packet {
+    position: absolute; top: 50%; left: 10%; width: 46px; height: 46px; margin: -23px 0 0 -23px;
+    transition: left .8s cubic-bezier(.3,.7,.3,1); filter: drop-shadow(0 2px 3px rgba(73,11,88,.35));
+  }
+  .packet img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  @media (max-width: 700px) {
+    .flow { grid-template-columns: 1fr; }
+    .flow-track { display: none; }
+    .node { display: flex; align-items: center; gap: .8rem; text-align: left; padding: .6rem .9rem; }
+    .node .node-name { margin-top: 0; }
+  }
+  .flow-text { margin-top: 1rem; background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.3rem; }
+  .flow-text h3 { font-family: var(--font-ui); font-size: 1rem; color: var(--guinda); margin-bottom: .3rem; }
+  .flow-text p { font-size: .95rem; margin-bottom: 0; }
+
+  /* Estación 3: buses */
+  .lanes { display: grid; gap: .6rem; }
+  .lane {
+    display: grid; grid-template-columns: 170px 90px 1fr; gap: .8rem; align-items: center;
+    background: var(--white); border: 2px solid var(--border); border-radius: var(--radius-md); padding: .65rem .9rem;
+    transition: border-color .3s, background .3s;
+  }
+  .lane .ln-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .lane .ln-name small { display: block; font-size: .66rem; font-weight: 500; color: var(--ink-muted); }
+  .lane .ln-dir { font-family: var(--font-ui); font-size: .72rem; color: var(--ink-secondary); text-align: center; }
+  .lane .ln-dir b { display: block; font-size: 1.3rem; color: var(--guinda-rule); line-height: 1; }
+  .lane .ln-val { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--ink-muted); min-height: 1.6em; }
+  .lane.on { border-color: var(--guinda); background: var(--guinda-light); }
+  .lane.on .ln-val { color: var(--guinda); }
+  .lane.on .ln-dir b { color: var(--guinda); }
+  @media (max-width: 640px) { .lane { grid-template-columns: 1fr; gap: .2rem; } .lane .ln-dir { text-align: left; } .lane .ln-dir b { display: inline; margin-right: .4rem; } }
+
+  .calc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .calc-grid { grid-template-columns: 1fr; } }
+  .field label { display: block; font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); font-weight: 600; margin-bottom: .25rem; }
+  .field input[type="number"], .field input[type="text"], .field select {
+    width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink);
+  }
+  .field input[type="range"] { width: 100%; accent-color: #490b58; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--guinda-rule); border-color: var(--guinda); }
+  .bits { display: flex; flex-wrap: wrap; gap: 2px; margin-top: .5rem; min-height: 16px; }
+  .bits i { display: block; width: 9px; height: 16px; border-radius: 2px; background: var(--guinda-rule); }
+  .bits.data i { background: var(--guinda); }
+  .calc-out { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin-top: 1.1rem; }
+  @media (max-width: 760px) { .calc-out { grid-template-columns: 1fr; } }
+  .out-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .out-box .ob-label { font-family: var(--font-ui); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda-mid); display: block; }
+  .out-box .ob-value { font-family: var(--font-display); font-size: 1.55rem; font-weight: 600; color: var(--guinda); line-height: 1.2; display: block; word-break: break-word; }
+  .out-box .ob-note { font-size: .82rem; color: var(--ink-secondary); display: block; margin-top: .2rem; }
+
+  /* Estación 4: carrera */
+  .race-presets { display: flex; flex-wrap: wrap; gap: .5rem; margin: .4rem 0 1rem; }
+  .race-size { display: grid; grid-template-columns: 1fr 120px; gap: .6rem; max-width: 360px; margin-bottom: .6rem; }
+  .race-row { display: grid; grid-template-columns: 190px 1fr 130px; gap: .8rem; align-items: center; margin: .55rem 0; }
+  @media (max-width: 700px) { .race-row { grid-template-columns: 1fr; gap: .25rem; margin: .9rem 0; } }
+  .race-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; color: var(--ink); }
+  .race-name small { display: block; font-weight: 500; color: var(--ink-muted); font-size: .68rem; }
+  .race-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 22px; overflow: hidden; }
+  .race-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #C85070, #7B1034); }
+  .race-fill.run { transition: width 3s cubic-bezier(.25,.6,.3,1); }
+  .race-time { font-family: var(--font-mono); font-size: .82rem; font-weight: 700; color: var(--guinda); }
+  .race-winner { color: #1e6b3a; }
+
+  /* Estación 5: ficha */
+  .chk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .chk-grid { grid-template-columns: 1fr; } }
+  .chk-group { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .8rem 1rem; }
+  .chk-group h4 { font-family: var(--font-ui); font-size: .74rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda); margin-bottom: .5rem; }
+  .chk-group label { display: flex; gap: .5rem; align-items: center; font-size: .9rem; padding: .22rem 0; cursor: pointer; }
+  .chk-group input { accent-color: #490b58; width: 16px; height: 16px; }
+  .ficha-fields { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .ficha-fields { grid-template-columns: 1fr; } }
+  .summary-box {
+    width: 100%; min-height: 190px; font-family: var(--font-mono); font-size: .8rem; padding: .7rem .9rem;
+    border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); resize: vertical;
+  }
+
+  /* Quiz */
+  .q { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.2rem; margin-bottom: .9rem; }
+  .q .q-text { font-weight: 600; margin-bottom: .5rem; font-size: .96rem; }
+  .q label {
+    display: block; padding: .4rem .7rem; margin: .25rem 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; font-size: .92rem; transition: background .15s;
+  }
+  .q label:hover { background: var(--guinda-light); }
+  .q input { margin-right: .5rem; accent-color: #490b58; }
+  .q.right label.chosen { background: #e8f5ec; border-color: #1e6b3a; }
+  .q.wrong label.chosen { background: #fbe9e9; border-color: #a12b2b; }
+  .q .q-expl { display: none; font-size: .86rem; color: var(--ink-secondary); margin-top: .5rem; padding-left: .7rem; border-left: 3px solid var(--guinda-rule); }
+  .q.shown .q-expl { display: block; }
+  .quiz-result { font-family: var(--font-display); font-size: 1.3rem; color: var(--guinda); margin-top: .8rem; font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .packet, .node, .route a, .dv-progress div { transition: none; }
+    .race-fill.run { transition: none; }
+    .dv-opt.bad { animation: none; }
+  }
+  .gloss { display: grid; grid-template-columns: repeat(2, 1fr); gap: .7rem; margin: 1rem 0; }
+  @media (max-width: 640px) { .gloss { grid-template-columns: 1fr; } }
+  .gloss div { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--guinda-rule); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: .7rem 1rem; font-size: .93rem; }
+  .gloss b { display: block; font-family: var(--font-ui); font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda); margin-bottom: .15rem; }
+
+  .detail-card { background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1.1rem 1.3rem; min-height: 280px; }
+  .detail-card h3 { font-family: var(--font-ui); font-size: 1.05rem; color: var(--guinda); margin-bottom: .2rem; }
+  .detail-card .detail-sub { font-family: var(--font-ui); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); display: block; margin-bottom: .7rem; }
+  .detail-analogy { background: var(--guinda-light); border: 1px solid #D8A8BA; border-radius: var(--radius-sm); padding: .6rem .9rem; font-size: .9rem; margin-top: .6rem; }
+  .detail-analogy strong { color: var(--guinda-dark); }
+  .ex-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0 0; }
+  .ex-chips span { font-family: var(--font-ui); font-size: .78rem; font-weight: 600; background: var(--guinda-light); color: var(--guinda-dark); border: 1px solid #D8A8BA; border-radius: 999px; padding: .2rem .7rem; }
+
+  /* Funciones del SO */
+  .fn-wrap { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 760px) { .fn-wrap { grid-template-columns: 1fr; } }
+  .fn-list { display: flex; flex-direction: column; gap: .5rem; }
+  .fn-btn { cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: .6rem; background: var(--white); border: 2px solid var(--border-strong); border-radius: var(--radius-md); padding: .8rem 1rem; font-family: var(--font-ui); font-size: .9rem; font-weight: 700; color: var(--guinda); transition: border-color .15s, background .15s, transform .15s; }
+  .fn-btn:hover { border-color: var(--guinda); transform: translateX(3px); }
+  .fn-btn.active { background: var(--guinda); border-color: var(--guinda); color: var(--white); }
+  .fn-btn:focus-visible { outline: 3px solid var(--guinda-rule); outline-offset: 2px; }
+  .fn-tag { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; background: var(--guinda-rule); color: #fff; padding: .15rem .5rem; border-radius: 999px; white-space: nowrap; }
+  .fn-btn.active .fn-tag { background: #fff; color: var(--guinda); }
+  /* Observa tu equipo */
+  .os-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .6rem; }
+  .obs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 560px) { .obs-grid { grid-template-columns: 1fr; } }
+  .field select { width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); }
+  .field input[type="number"], .field input[type="text"] { width: 100%; font-family: var(--font-ui); font-size: .92rem; padding: .5rem .7rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); }
+  .meter { margin: .55rem 0; }
+  .meter .m-top { display: flex; justify-content: space-between; font-family: var(--font-ui); font-size: .8rem; font-weight: 600; margin-bottom: .25rem; }
+  .meter .m-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 18px; overflow: hidden; }
+  .meter .m-fill { height: 100%; width: 0; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .6s ease; }
+  @media (prefers-reduced-motion: reduce) { .state, .fn-btn, .g-cell, .meter .m-fill { transition: none; } }
+
+  /* ═════ Estilos propios de la clase 2.3 ═════ */
+  .route { grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+  .cmp-wrap { overflow-x: auto; margin-top: 1.4rem; }
+  .cmp-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: .9rem; background: var(--white); }
+  .cmp-table th, .cmp-table td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+  .cmp-table th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: #fff; background: var(--guinda); }
+  .cmp-table td:first-child { font-family: var(--font-ui); font-weight: 700; color: var(--guinda); background: var(--guinda-light); width: 22%; }
+  .mrows { list-style: none; margin: .7rem 0; }
+  .mrows li { display: grid; grid-template-columns: 150px 1fr; gap: .5rem; padding: .35rem 0; border-bottom: 1px dashed var(--border); font-size: .92rem; }
+  .mrows li:last-child { border-bottom: none; }
+  .mrows .mr-l { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--guinda-mid); font-weight: 700; }
+  @media (max-width: 520px) { .mrows li { grid-template-columns: 1fr; gap: .1rem; } }
+  .pro-con { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .7rem; }
+  @media (max-width: 560px) { .pro-con { grid-template-columns: 1fr; } }
+  .pro-con div { border-radius: var(--radius-sm); padding: .55rem .8rem; font-size: .88rem; }
+  .pro-con .pro { background: #e8f5ec; border: 1px solid #9bc9aa; }
+  .pro-con .con { background: #fbe9e9; border: 1px solid #dba3a3; }
+  .pro-con b { display: block; font-family: var(--font-ui); font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: .1rem; }
+  .pro-con .pro b { color: #1e6b3a; } .pro-con .con b { color: #a12b2b; }
+
+  .freedoms { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; margin: 1.2rem 0; }
+  @media (max-width: 760px) { .freedoms { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 420px) { .freedoms { grid-template-columns: 1fr; } }
+  .freedom { background: var(--white); border: 1px solid var(--border-strong); border-top: 4px solid var(--guinda); border-radius: var(--radius-md); padding: .7rem .8rem; font-size: .86rem; }
+  .freedom b { display: block; font-family: var(--font-display); font-size: 1.5rem; color: var(--guinda); line-height: 1; }
+  .freedom span { font-family: var(--font-ui); font-weight: 700; font-size: .78rem; color: var(--ink); display: block; margin: .2rem 0; }
+  .dv-opts.opts4 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 560px) { .dv-opts.opts4 { grid-template-columns: 1fr; } }
+  .sc-box { background: var(--white); border: 2px solid var(--guinda); border-radius: var(--radius-lg); padding: 1.2rem 1.4rem; margin-bottom: 1rem; box-shadow: var(--shadow-md); }
+  .sc-box .sc-n { font-family: var(--font-ui); font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-muted); display: block; margin-bottom: .3rem; }
+  .sc-box p { margin-bottom: 0; font-size: 1rem; }
+  .dv-opts.opts3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 700px) { .dv-opts.opts3 { grid-template-columns: 1fr; } }
+  .dv-opt.long { font-weight: 600; font-size: .88rem; text-align: left; }
+
+  .cost-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  @media (max-width: 640px) { .cost-grid { grid-template-columns: 1fr; } }
+  .field .val { font-family: var(--font-ui); font-weight: 700; color: var(--guinda); font-size: .9rem; }
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; margin: 1rem 0; }
+  @media (max-width: 700px) { .price-grid { grid-template-columns: 1fr; } }
+  .cost-row { display: grid; grid-template-columns: 170px 1fr 120px; gap: .8rem; align-items: center; margin: .6rem 0; }
+  @media (max-width: 700px) { .cost-row { grid-template-columns: 1fr; gap: .2rem; margin: .9rem 0; } }
+  .cost-name { font-family: var(--font-ui); font-size: .82rem; font-weight: 700; }
+  .cost-name small { display: block; font-weight: 500; color: var(--ink-muted); font-size: .68rem; }
+  .cost-track { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 24px; overflow: hidden; }
+  .cost-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #C85070, #7B1034); transition: width .5s ease; }
+  .cost-fill.min { background: linear-gradient(90deg, #4fa56b, #1e6b3a); }
+  .cost-val { font-family: var(--font-mono); font-size: .88rem; font-weight: 700; color: var(--guinda); }
+  .cost-val.min { color: #1e6b3a; }
+
+  .inv-row { display: grid; grid-template-columns: 1.3fr 1fr; gap: .6rem; margin: .5rem 0; }
+  @media (max-width: 560px) { .inv-row { grid-template-columns: 1fr; } }
+  .inv-row input, .inv-row select { width: 100%; font-family: var(--font-ui); font-size: .9rem; padding: .5rem .7rem; border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--ink); }
+  .inv-row input:focus, .inv-row select:focus { outline: 2px solid var(--guinda-rule); border-color: var(--guinda); }
+
+  /* Cierre: para qué sirve */
+  .use-section { background: var(--guinda-light); border: 2px solid var(--guinda); border-radius: var(--radius-lg); padding: 1.6rem 1.5rem; }
+  .use-section .section-title { margin-top: 0; }
+  .learned { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; margin: 1rem 0 1.4rem; }
+  @media (max-width: 700px) { .learned { grid-template-columns: 1fr; } }
+  .learned div { background: var(--white); border: 1px solid #D8A8BA; border-radius: var(--radius-md); padding: .8rem 1rem; font-size: .92rem; }
+  .learned b { display: block; font-family: var(--font-ui); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--guinda); margin-bottom: .2rem; }
+  .role-detail { background: var(--white); border: 1px solid var(--border-strong); border-left: 4px solid var(--guinda); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1.1rem 1.3rem; margin-top: .8rem; }
+  .role-detail h3 { font-family: var(--font-ui); font-size: 1.02rem; color: var(--guinda); margin-bottom: .5rem; }
+  .role-detail p { font-size: .94rem; margin-bottom: .55rem; }
+  .role-detail p:last-child { margin-bottom: 0; }
+  .role-detail p b { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--guinda-mid); display: block; }
+  .five-q { list-style: none; counter-reset: fq; margin: .8rem 0 0; display: grid; gap: .5rem; }
+  .five-q li { counter-increment: fq; display: flex; gap: .8rem; align-items: flex-start; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .6rem .9rem; font-size: .93rem; }
+  .five-q li::before { content: counter(fq); flex-shrink: 0; width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 50%; background: var(--guinda); color: #fff; font-family: var(--font-ui); font-weight: 700; font-size: .78rem; }
+  .sub-h { font-family: var(--font-ui); font-size: 1rem; color: var(--guinda); margin: 1.6rem 0 .3rem; }
+  @media (prefers-reduced-motion: reduce) { .cost-fill { transition: none; } }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="logo-wrap"><img src="imagen1.png" alt="Logo IEDEP"></div>
+    <div class="header-text">
+      <span class="inst-name">Instituto de Educación Digital del Estado de Puebla</span>
+      <span class="doc-title">Guía de clase interactiva — Licenciatura en Sistemas Computacionales</span>
+    </div>
+  </header>
+
+  <section class="class-hero">
+    <span class="class-label">Unidad 2 · Software de Sistema y de Aplicación</span>
+    <h1>Tipos de licenciamiento: software libre, propietario y modelos SaaS</h1>
+    <span class="class-subtitle">Cuando instalas un programa, ¿realmente es tuyo? Hoy descubrirás qué te permite hacer cada tipo de licencia y cómo elegir la adecuada.</span>
+    <div class="meta-row">
+      <div class="meta-item">Programa educativo<span>Licenciatura en Sistemas Computacionales</span></div>
+      <div class="meta-item">Asignatura<span>Introducción a los Sistemas Computacionales</span></div>
+      <div class="meta-item">Fecha<span>Domingo 22 de noviembre de 2026</span></div>
+    </div>
+  </section>
+
+  <div class="page-wrapper">
+
+    <!-- ══════════════ FICHA ══════════════ -->
+    <section class="section">
+      <div class="card">
+        <span class="card-title">Ficha de la clase</span>
+        <ul class="info-list">
+          <li><span class="info-label">Programa educativo</span><span>Licenciatura en Sistemas Computacionales</span></li>
+          <li><span class="info-label">Asignatura</span><span>Introducción a los Sistemas Computacionales</span></li>
+          <li><span class="info-label">Unidad</span><span>2. Software de Sistema y de Aplicación</span></li>
+          <li><span class="info-label">Tema</span><span>2.3 Tipos de licenciamiento: software libre, propietario y modelos SaaS</span></li>
+          <li><span class="info-label">Fecha</span><span>Domingo 22 de noviembre de 2026</span></li>
+        </ul>
+      </div>
+
+      <span class="section-label">Competencias a desarrollar</span>
+      <div class="competency-card">
+        <span class="comp-num">01</span>
+        <span class="comp-text"><strong>Competencia de unidad:</strong> Contrastar los tipos de software y las funciones críticas del Sistema Operativo, a través de la revisión de esquemas de licenciamiento y administración de procesos, con el propósito de seleccionar las herramientas adecuadas respetando la normativa de propiedad intelectual y eficiencia técnica.</span>
+      </div>
+      <div class="competency-card">
+        <span class="comp-num">02</span>
+        <span class="comp-text"><strong>Competencia del tema:</strong> Diferenciar los esquemas de licenciamiento de software (propietario, libre y SaaS), mediante el análisis de casos cotidianos y profesionales, para elegir la opción más adecuada a una necesidad respetando los derechos de autor.</span>
+      </div>
+
+      <span class="section-label" style="margin-top:1.5rem;">Ruta de la clase (haz clic para ir a cada estación)</span>
+      <nav class="route" aria-label="Ruta de la clase">
+        <a href="#e1">Tres modelos</a>
+        <a href="#e2">¿Libre o solo gratis?</a>
+        <a href="#e3">Compra, renta o comparte</a>
+        <a href="#e4">Decide como profesional</a>
+        <a href="#e5">Mi inventario</a>
+        <a href="#quizSec">Comprueba</a>
+        <a href="#paraque">¿Para qué me sirve?</a>
+      </nav>
+    </section>
+
+    <!-- ══════════════ INTRO ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Empecemos: ¿de quién es un programa?</h2>
+      <p>Imagina que descargas un videojuego, un editor de fotos o un procesador de texto. Lo usas todos los días, pero ¿de quién es? ¿Puedes regalárselo a un amigo? ¿Puedes cambiarle algo? ¿Qué pasa si dejas de pagar? Las respuestas dependen de su <strong>licencia</strong>.</p>
+      <p>Una <strong>licencia de software</strong> es el permiso, con sus reglas, que el autor te da para usar un programa. El programa casi siempre pertenece a alguien (tiene <strong>derechos de autor</strong>) y la licencia dice qué puedes y qué no puedes hacer con él. En México, la Ley Federal del Derecho de Autor protege los programas de computación igual que protege un libro o una canción.</p>
+
+      <div class="concept-box">
+        <span class="concept-title">Analogía de hoy: tres formas de conseguir un platillo</span>
+        <p>Piensa en la comida. Puedes <strong>comprar</strong> el platillo de una cadena famosa: es tuyo para comerlo, pero la receta es secreta y no puedes vender copias (<strong>software propietario</strong>). Puedes tomar una receta de un <strong>recetario comunitario</strong>: la cocinas, la estudias, le cambias ingredientes y compartes tu versión (<strong>software libre</strong>). O puedes <strong>comer en un restaurante</strong>: pagas por usar su cocina, pero no te la llevas, y si dejas de pagar ya no comes (<strong>SaaS</strong>).</p>
+      </div>
+
+      <h3 class="sub-h">Palabras que usaremos hoy</h3>
+      <div class="gloss">
+        <div><b>Licencia</b>Permiso, con reglas, para usar un programa.</div>
+        <div><b>Código fuente</b>Las instrucciones escritas por los programadores. Si lo tienes, puedes ver cómo funciona el programa por dentro.</div>
+        <div><b>Derechos de autor</b>Los derechos que tiene quien creó una obra, incluido un programa, para decidir cómo se usa y se copia.</div>
+        <div><b>SaaS</b>«Software como servicio»: usas el programa por Internet y pagas por usarlo, sin instalarlo ni ser su dueño.</div>
+        <div><b>Copyleft</b>Regla de algunas licencias libres: si compartes una versión modificada, debe conservar las mismas libertades.</div>
+        <div><b>Piratería</b>Usar o copiar un programa sin tener permiso de su autor.</div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 1 ══════════════ -->
+    <section class="section" id="e1">
+      <h2 class="section-title">Estación 1 · Los tres modelos</h2>
+      <p>Haz clic en cada modelo para ver qué significa, su analogía, quién lo controla y qué ventajas y cuidados tiene. Al final encontrarás una tabla para compararlos.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Tres formas de licenciar el software</span><span class="lab-tag">Haz clic en un modelo</span></div>
+        <div class="lab-body">
+          <div class="fn-wrap">
+            <div class="fn-list" role="group" aria-label="Modelos de licenciamiento" id="mList"></div>
+            <div class="detail-card" id="mDetail" aria-live="polite"></div>
+          </div>
+          <div class="cmp-wrap">
+            <table class="cmp-table">
+              <thead><tr><th>Característica</th><th>Propietario</th><th>Libre</th><th>SaaS</th></tr></thead>
+              <tbody>
+                <tr><td>¿Quién lo controla?</td><td>La empresa dueña</td><td>La comunidad y el autor, bajo una licencia abierta</td><td>El proveedor del servicio</td></tr>
+                <tr><td>¿Puedes ver el código?</td><td>No</td><td>Sí</td><td>No</td></tr>
+                <tr><td>¿Puedes modificarlo?</td><td>No</td><td>Sí</td><td>No</td></tr>
+                <tr><td>¿Cómo se paga?</td><td>Compra o licencia por equipo</td><td>Normalmente sin costo de licencia</td><td>Suscripción mensual o anual (a veces hay plan gratis)</td></tr>
+                <tr><td>¿Dónde funciona?</td><td>Instalado en tu equipo</td><td>Instalado en tu equipo o servidor</td><td>En los servidores del proveedor, por Internet</td></tr>
+                <tr><td>Si dejas de pagar…</td><td>Conservas la versión comprada, sin actualizaciones nuevas</td><td>No aplica: sigue funcionando</td><td>Pierdes el acceso o te limitan el plan</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 2 ══════════════ -->
+    <section class="section" id="e2">
+      <h2 class="section-title">Estación 2 · ¿Libre o solo gratis?</h2>
+      <p>Uno de los errores más comunes es creer que «libre» significa «gratis». Pero <strong>libre se refiere a libertad, no a precio</strong>. El proyecto GNU y la Free Software Foundation lo explican con cuatro libertades. Un programa es software libre si las cumple todas:</p>
+
+      <div class="freedoms">
+        <div class="freedom"><b>0</b><span>Usar</span>Ejecutar el programa para cualquier propósito.</div>
+        <div class="freedom"><b>1</b><span>Estudiar y cambiar</span>Ver cómo funciona y adaptarlo (requiere el código fuente).</div>
+        <div class="freedom"><b>2</b><span>Compartir</span>Redistribuir copias para ayudar a otros.</div>
+        <div class="freedom"><b>3</b><span>Mejorar y publicar</span>Distribuir tus versiones modificadas.</div>
+      </div>
+
+      <div class="lab">
+        <div class="lab-header"><span>Clasifica el programa</span><span class="lab-tag">10 programas · 4 categorías</span></div>
+        <div class="lab-body">
+          <div class="stats" style="margin-bottom:1rem;">
+            <div class="stat"><b id="sOk">0</b><span>Aciertos</span></div>
+            <div class="stat"><b id="sStreak">0</b><span>Racha</span></div>
+            <div class="stat"><b id="sLeft">10</b><span>Por clasificar</span></div>
+          </div>
+          <div class="dv-progress"><div id="sBar"></div></div>
+          <div id="sPlay">
+            <div class="dv-card" aria-live="polite">
+              <span class="dv-label" id="sCount">Programa 1 de 10</span>
+              <span class="dv-name" id="sName"></span>
+              <span class="dv-hint" id="sDesc"></span>
+            </div>
+            <div class="dv-opts opts4" id="sOpts" role="group" aria-label="Categorías"></div>
+            <div class="dv-feedback" id="sFeed" aria-live="polite"></div>
+            <div class="btn-row"><button class="btn" id="sNext" type="button" style="display:none;">Siguiente programa</button></div>
+          </div>
+          <div id="sEnd" style="display:none;">
+            <div class="callout note"><p id="sEndMsg"></p></div>
+            <div class="btn-row" style="margin-top:.8rem;"><button class="btn" id="sAgain" type="button">Jugar otra vez</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mascot-tip">
+      <img src="imagen2.png" alt="Mascota Mixtle">
+      <div>
+        <span class="mascot-label">Dato curioso</span>
+        <p>Google Chrome es gratis, pero no es software libre: su código no es tuyo para modificarlo y redistribuirlo. En cambio, existe un proyecto abierto llamado Chromium que sirve de base a varios navegadores. Conclusión: que no pagues no significa que seas libre de hacer lo que quieras con el programa. ¡Siempre revisa la licencia!</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ ESTACIÓN 3 ══════════════ -->
+    <section class="section" id="e3">
+      <h2 class="section-title">Estación 3 · Compra, renta o comparte: ¿cuánto cuesta?</h2>
+      <p>Cada modelo cobra de forma distinta: uno cobra <strong>una sola vez</strong>, otro cobra <strong>cada mes</strong> y otro casi no cobra licencia, pero requiere <strong>capacitación y soporte</strong>. Calcula cuál sale más barato para una empresa pequeña y observa cómo cambia al aumentar los usuarios o los años.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Calculadora de costo de licenciamiento</span><span class="lab-tag">Precios de ejemplo en pesos, no reales</span></div>
+        <div class="lab-body">
+          <div class="cost-grid">
+            <div class="field"><label for="cUsers">Usuarios: <span class="val" id="cUsersV">10</span></label><input type="range" id="cUsers" min="1" max="50" value="10"></div>
+            <div class="field"><label for="cYears">Años de uso: <span class="val" id="cYearsV">3</span></label><input type="range" id="cYears" min="1" max="5" value="3"></div>
+          </div>
+          <div class="price-grid">
+            <div class="field"><label for="pUnico">Propietario: pago único por usuario ($)</label><input type="number" id="pUnico" min="0" step="100" value="2400"></div>
+            <div class="field"><label for="pMes">SaaS: pago mensual por usuario ($)</label><input type="number" id="pMes" min="0" step="10" value="180"></div>
+            <div class="field"><label for="pCap">Libre: capacitación única por usuario ($)</label><input type="number" id="pCap" min="0" step="50" value="600"></div>
+          </div>
+          <div id="cRows" aria-live="polite"></div>
+          <div class="callout note"><p id="cInsight"></p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 4 ══════════════ -->
+    <section class="section" id="e4">
+      <h2 class="section-title">Estación 4 · Decide como profesional</h2>
+      <p>En el trabajo, alguien tiene que decidir qué programas usar. Lee cada situación y elige la mejor opción. Piensa en el costo, pero también en el soporte, la conexión a Internet, la necesidad de modificar el programa y la legalidad.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Situaciones reales</span><span class="lab-tag" id="dTag">Situación 1 de 5</span></div>
+        <div class="lab-body">
+          <div class="dv-progress"><div id="dBar"></div></div>
+          <div id="dPlay">
+            <div class="sc-box" aria-live="polite"><span class="sc-n" id="dNum"></span><p id="dText"></p></div>
+            <div class="dv-opts opts3" id="dOpts" role="group" aria-label="Opciones"></div>
+            <div class="dv-feedback" id="dFeed" aria-live="polite"></div>
+            <div class="btn-row"><button class="btn" id="dNext" type="button" style="display:none;">Siguiente situación</button></div>
+          </div>
+          <div id="dEnd" style="display:none;">
+            <div class="callout note"><p id="dEndMsg"></p></div>
+            <div class="btn-row" style="margin-top:.8rem;"><button class="btn" id="dAgain" type="button">Reiniciar</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ ESTACIÓN 5 ══════════════ -->
+    <section class="section" id="e5">
+      <h2 class="section-title">Estación 5 · Mi inventario de licencias</h2>
+      <p>Anota hasta cinco programas que uses con frecuencia y elige qué tipo de licencia crees que tienen. Si no estás seguro, elige «No lo sé» y investígalo: es un buen material para tu <strong>informe de caso práctico</strong> de la Unidad 2.</p>
+
+      <div class="lab">
+        <div class="lab-header"><span>Inventario de mi software</span><span class="lab-tag">Se genera aquí, no se envía a ningún lado</span></div>
+        <div class="lab-body">
+          <div id="invRows"></div>
+          <div class="btn-row" style="margin-top:.8rem;"><button class="btn" id="iGen" type="button">Generar mi resumen</button><span id="iMsg" style="font-size:.88rem; font-weight:600;" aria-live="polite"></span></div>
+          <div id="iOut" style="display:none; margin-top:1.2rem;">
+            <p id="iComment" style="font-size:.93rem;"></p>
+            <label for="iSummary" class="lab-sub" style="margin-top:.4rem;">Resumen para tus apuntes</label>
+            <textarea class="summary-box" id="iSummary" readonly></textarea>
+            <div class="btn-row" style="margin-top:.6rem;"><button class="btn ghost" id="iCopy" type="button">Copiar resumen</button><span id="iCopyMsg" style="font-size:.85rem;" aria-live="polite"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ AUTOEVALUACIÓN ══════════════ -->
+    <section class="section" id="quizSec">
+      <h2 class="section-title">Comprueba lo aprendido</h2>
+      <p>Cinco preguntas sencillas para saber cómo vas. No se registra ninguna calificación: es solo para ti.</p>
+      <div id="quiz"></div>
+      <button class="btn" id="btnQuiz" type="button">Comprobar mis respuestas</button>
+      <div class="quiz-result" id="quizResult" aria-live="polite"></div>
+    </section>
+
+    <!-- ══════════════ CONCLUSIÓN ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Conclusión</h2>
+      <p>Un programa no se «compra» sin condiciones: siempre se usa bajo una licencia. En el <strong>software propietario</strong>, la empresa conserva el control y tú recibes un permiso de uso. En el <strong>software libre</strong>, tienes cuatro libertades (usar, estudiar y cambiar, compartir y mejorar), y por eso libre no significa necesariamente gratis. En el modelo <strong>SaaS</strong>, no instalas ni posees el programa: lo utilizas por Internet mientras pagues la suscripción.</p>
+      <p>Ningún modelo es mejor en todos los casos. La decisión correcta depende del costo a lo largo del tiempo, del soporte, de la conexión a Internet, de la necesidad de adaptar el programa y, sobre todo, del respeto a los derechos de autor. En la próxima sesión cerraremos la Unidad 2 con el <strong>ecosistema de los sistemas operativos actuales</strong>: Windows, Linux, macOS, Android e iOS.</p>
+    </section>
+
+    <!-- ══════════════ PARA QUÉ ME SIRVE ══════════════ -->
+    <section class="section" id="paraque">
+      <div class="use-section">
+        <h2 class="section-title">¿Para qué me sirve lo que aprendí hoy?</h2>
+        <p>Entender las licencias no es un tema de abogados: es una decisión que cualquier profesional de sistemas toma cada semana. Antes de instalar, recomendar o contratar un programa, alguien tiene que saber qué se puede hacer con él, cuánto costará y qué riesgos tiene.</p>
+
+        <div class="learned">
+          <div><b>Lo que aprendí</b>Diferenciar software propietario, libre y SaaS, y que «libre» habla de libertades, no de precio.</div>
+          <div><b>Lo que ya puedo hacer</b>Comparar el costo de cada modelo y elegir con argumentos, no solo por costumbre o por precio.</div>
+          <div><b>Lo que debo cuidar</b>Revisar siempre la licencia y evitar el software pirata, por razones legales y de seguridad.</div>
+        </div>
+
+        <h3 class="sub-h" style="margin-top:0;">¿Cómo se aplica en el mundo profesional? Elige un perfil</h3>
+        <div class="os-tabs" id="roleTabs" role="group" aria-label="Perfiles profesionales"></div>
+        <div class="role-detail" id="roleDetail" aria-live="polite"></div>
+
+        <h3 class="sub-h">Cinco preguntas que se hace un profesional antes de instalar o contratar un programa</h3>
+        <ol class="five-q">
+          <li><span><strong>¿Quién es el dueño y bajo qué licencia lo ofrece?</strong> Es el primer dato que revisas.</span></li>
+          <li><span><strong>¿Qué me permite y qué me prohíbe?</strong> Copiar, modificar, instalarlo en varios equipos o usarlo con fines comerciales.</span></li>
+          <li><span><strong>¿Cuánto cuesta a uno, tres y cinco años?</strong> No solo el precio de hoy.</span></li>
+          <li><span><strong>¿Dónde quedan mis datos y quién puede verlos?</strong> Sobre todo en servicios SaaS.</span></li>
+          <li><span><strong>¿Qué pasa si dejo de pagar o si el proveedor desaparece?</strong> Piensa en cómo recuperarías tu información.</span></li>
+        </ol>
+
+        <div class="callout note" style="margin-top:1.2rem;"><p><strong>Conexión con tu evaluación:</strong> en el informe de caso práctico de la Unidad 2 tendrás un escenario hipotético con requerimientos definidos. Usa estas cinco preguntas para justificar qué licencia recomendarías y por qué.</p></div>
+      </div>
+    </section>
+
+    <!-- ══════════════ REFERENCIAS ══════════════ -->
+    <section class="section">
+      <h2 class="section-title">Referencias bibliográficas</h2>
+      <p class="text-sm">Free Software Foundation. (s. f.). <em>¿Qué es el software libre?</em> Proyecto GNU. https://www.gnu.org/philosophy/free-sw.es.html</p>
+      <p class="text-sm">Open Source Initiative. (s. f.). <em>The Open Source Definition</em>. https://opensource.org/osd</p>
+      <p class="text-sm">Stallman, R. M. (2004). <em>Software libre para una sociedad libre</em>. Traficantes de Sueños.</p>
+      <p class="text-sm">Tanenbaum, A. S., y Bos, H. (2023). <em>Modern Operating Systems</em> (5.ª ed.). Pearson.</p>
+      <p class="text-sm">Ley Federal del Derecho de Autor. (1996). Diario Oficial de la Federación, 24 de diciembre de 1996 (texto vigente).</p>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <span><img src="imagen2.png" alt="Mascota Mixtle" style="height:34px; width:auto; vertical-align:middle; margin-right:.6rem;"><strong>IEDEP</strong> · Instituto de Educación Digital del Estado de Puebla</span>
+    <span>Introducción a los Sistemas Computacionales · Unidad 2 · Tema 2.3</span>
+  </footer>
+<script>
+(function () {
+  'use strict';
+  function $(id) { return document.getElementById(id); }
+  function money(n) { return '$' + Math.round(n).toLocaleString('es-MX'); }
+  function shuffle(a) { var b = a.slice(), i, j, t; for (i = b.length - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); t = b[i]; b[i] = b[j]; b[j] = t; } return b; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function copyFrom(box, msg) {
+    function ok() { msg.style.color = '#1e6b3a'; msg.textContent = 'Resumen copiado.'; }
+    function fail() { msg.style.color = '#a12b2b'; msg.textContent = 'Selecciona el texto y cópialo manualmente.'; }
+    function old() { try { box.focus(); box.select(); document.execCommand('copy') ? ok() : fail(); } catch (e) { fail(); } }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(box.value).then(ok, old); } else { old(); }
+  }
+
+  /* ═════════ Estación 1 · Tres modelos ═════════ */
+  var MODELS = [
+    { n: 'Software propietario', tag: 'Reglas del dueño', sub: 'Compras un permiso de uso',
+      d: 'La empresa o el autor conserva todos los derechos. Tú obtienes una licencia de uso bajo las condiciones de un contrato (muchas veces llamado EULA), pero no puedes ver el código fuente, modificarlo ni copiarlo para otras personas.',
+      a: 'Es el platillo de una cadena famosa: puedes comerlo, pero la receta es secreta y no puedes vender copias.',
+      rows: [['Dueño', 'La empresa o autor'], ['¿Ves el código?', 'No'], ['¿Lo modificas?', 'No'], ['Cómo se paga', 'Compra o licencia por equipo'], ['Dónde funciona', 'Instalado en tu equipo']],
+      ex: ['Windows', 'macOS', 'Microsoft Office (compra única)', 'WhatsApp (gratis, pero propietario)'],
+      pro: 'Soporte oficial, estándares de la industria y buena compatibilidad con otros usuarios.',
+      con: 'Costo de licencias, dependes del proveedor y no puedes adaptarlo. Copiar sin permiso es piratería.' },
+    { n: 'Software libre', tag: 'Cuatro libertades', sub: 'Puedes usar, estudiar, cambiar y compartir',
+      d: 'El autor publica el código fuente y una licencia que te da las cuatro libertades: usar, estudiar y cambiar, compartir copias y distribuir tus mejoras. Algunas licencias (como la GPL) tienen copyleft: tus versiones modificadas deben conservar esas mismas libertades. Otras (como la MIT) son más permisivas.',
+      a: 'Es una receta del recetario comunitario: la cocinas, le cambias ingredientes y compartes tu versión con los demás.',
+      rows: [['Dueño', 'El autor y la comunidad, bajo una licencia abierta'], ['¿Ves el código?', 'Sí'], ['¿Lo modificas?', 'Sí'], ['Cómo se paga', 'Normalmente sin costo de licencia'], ['Dónde funciona', 'En tu equipo o servidor']],
+      ex: ['Linux', 'Firefox', 'LibreOffice', 'GIMP', 'VLC', 'Python'],
+      pro: 'Sin costo de licencia, transparencia, puedes adaptarlo a tus necesidades y cuenta con una gran comunidad.',
+      con: 'El soporte depende de la comunidad o de contratar a alguien, y requiere aprender a usarlo. Lee las condiciones de cada licencia.' },
+    { n: 'SaaS (software como servicio)', tag: 'Por suscripción', sub: 'Lo usas por Internet, sin instalarlo',
+      d: 'No compras ni instalas el programa: lo usas desde el navegador o una app mientras pagues una suscripción (algunos ofrecen un plan gratis limitado). El proveedor lo aloja, lo actualiza y guarda tus datos en sus servidores.',
+      a: 'Es comer en un restaurante: pagas por usar su cocina, no te la llevas, y si dejas de pagar ya no comes.',
+      rows: [['Dueño', 'El proveedor del servicio'], ['¿Ves el código?', 'No'], ['¿Lo modificas?', 'No'], ['Cómo se paga', 'Suscripción mensual o anual'], ['Dónde funciona', 'En los servidores del proveedor']],
+      ex: ['Google Docs', 'Canva', 'Zoom', 'Dropbox', 'Microsoft 365 (versión web)'],
+      pro: 'No instalas nada, siempre está actualizado y lo abres desde cualquier dispositivo con Internet.',
+      con: 'Necesitas conexión, los pagos nunca terminan y tus datos viven en servidores ajenos.' }
+  ];
+  var mList = $('mList'), mDetail = $('mDetail'), mBtns = [];
+  function showModel(i) {
+    var m = MODELS[i];
+    mBtns.forEach(function (b, j) { b.classList.toggle('active', j === i); b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+    var rows = m.rows.map(function (r) { return '<li><span class="mr-l">' + r[0] + '</span><span>' + r[1] + '</span></li>'; }).join('');
+    var ex = m.ex.map(function (e) { return '<span>' + e + '</span>'; }).join('');
+    mDetail.innerHTML = '<h3>' + m.n + '</h3><span class="detail-sub">' + m.sub + '</span><p>' + m.d + '</p>' +
+      '<div class="detail-analogy"><strong>Analogía:</strong> ' + m.a + '</div><ul class="mrows">' + rows + '</ul>' +
+      '<div class="ex-chips">' + ex + '</div>' +
+      '<div class="pro-con"><div class="pro"><b>Ventaja</b>' + m.pro + '</div><div class="con"><b>Cuidado</b>' + m.con + '</div></div>';
+  }
+  MODELS.forEach(function (m, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'fn-btn';
+    b.innerHTML = '<span>' + m.n + '</span><span class="fn-tag">' + m.tag + '</span>';
+    b.addEventListener('click', function () { showModel(i); });
+    mList.appendChild(b); mBtns.push(b);
+  });
+  showModel(0);
+
+  /* ═════════ Estación 2 · Clasificador ═════════ */
+  var CATS = [
+    { k: 'prop', n: 'Propietario de pago', s: 'Pagas licencia, código cerrado' },
+    { k: 'gratis', n: 'Gratis, pero propietario', s: 'No pagas, código cerrado' },
+    { k: 'libre', n: 'Software libre', s: 'Cuatro libertades' },
+    { k: 'saas', n: 'SaaS (por Internet)', s: 'Servicio por suscripción o plan' }
+  ];
+  var PROGS = [
+    { n: 'Windows 11', d: 'Sistema operativo de Microsoft', a: 'prop', e: 'Se usa con una licencia y su código fuente no está disponible para modificarlo.' },
+    { n: 'Ubuntu (Linux)', d: 'Sistema operativo', a: 'libre', e: 'Su código es abierto: puedes estudiarlo, modificarlo y compartirlo.' },
+    { n: 'Google Chrome', d: 'Navegador de Internet', a: 'gratis', e: 'No pagas, pero Chrome es propietario. Solo su base abierta, Chromium, es libre.' },
+    { n: 'Firefox', d: 'Navegador de Internet', a: 'libre', e: 'Su código es abierto y cualquiera puede estudiarlo y contribuir.' },
+    { n: 'WhatsApp', d: 'App de mensajería', a: 'gratis', e: 'No se paga por instalarla, pero el código pertenece a la empresa: es propietario.' },
+    { n: 'Google Docs', d: 'Editor de documentos en el navegador', a: 'saas', e: 'Lo usas por Internet, sin instalarlo; el proveedor lo aloja y lo actualiza.' },
+    { n: 'Canva', d: 'Diseño gráfico en el navegador', a: 'saas', e: 'Funciona en línea, con un plan gratis y planes de pago por suscripción.' },
+    { n: 'VLC', d: 'Reproductor de video', a: 'libre', e: 'Es un programa libre y gratuito, con código abierto.' },
+    { n: 'Zoom', d: 'Videollamadas', a: 'saas', e: 'Es un servicio al que accedes por Internet, con plan gratis limitado y planes de pago.' },
+    { n: 'Microsoft Office 2021 (compra única)', d: 'Paquete de oficina instalado en tu equipo', a: 'prop', e: 'Pagas una licencia de uso y el código es de Microsoft, sin posibilidad de modificarlo.' }
+  ];
+  var sOrder = [], sI = 0, sOk = 0, sStreak = 0, sLocked = false;
+  var sOpts = $('sOpts'), sBtns = [];
+  CATS.forEach(function (c) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'dv-opt'; b.dataset.k = c.k;
+    b.innerHTML = c.n + '<small>' + c.s + '</small>';
+    b.addEventListener('click', function () { sAnswer(c.k); });
+    sOpts.appendChild(b); sBtns.push(b);
+  });
+  function sStats() { $('sOk').textContent = sOk; $('sStreak').textContent = sStreak; $('sLeft').textContent = PROGS.length - sI; $('sBar').style.width = (sI / PROGS.length * 100) + '%'; }
+  function sShow() {
+    var p = sOrder[sI]; sLocked = false;
+    $('sCount').textContent = 'Programa ' + (sI + 1) + ' de ' + PROGS.length;
+    $('sName').textContent = p.n; $('sDesc').textContent = p.d;
+    $('sFeed').textContent = ''; $('sFeed').className = 'dv-feedback';
+    $('sNext').style.display = 'none';
+    sBtns.forEach(function (b) { b.disabled = false; b.className = 'dv-opt'; });
+    sStats();
+  }
+  function sAnswer(k) {
+    if (sLocked) return; sLocked = true;
+    var p = sOrder[sI], good = k === p.a, f = $('sFeed');
+    sBtns.forEach(function (b) { b.disabled = true; if (b.dataset.k === p.a) b.classList.add('good'); else if (b.dataset.k === k) b.classList.add('bad'); });
+    if (good) { sOk++; sStreak++; f.className = 'dv-feedback ok'; f.textContent = 'Correcto. ' + p.e; }
+    else { sStreak = 0; f.className = 'dv-feedback bad'; f.textContent = 'No exactamente. ' + p.e; }
+    sI++; sStats();
+    $('sNext').style.display = ''; $('sNext').textContent = sI >= PROGS.length ? 'Ver mi resultado' : 'Siguiente programa'; $('sNext').focus();
+  }
+  $('sNext').addEventListener('click', function () {
+    if (sI >= PROGS.length) {
+      $('sPlay').style.display = 'none'; $('sEnd').style.display = '';
+      $('sEndMsg').textContent = 'Clasificaste bien ' + sOk + ' de ' + PROGS.length + ' programas. ' + (sOk >= 9 ? 'Excelente: ya distingues libre, gratis y por suscripción.' : (sOk >= 6 ? 'Vas bien. Recuerda: gratis no significa libre.' : 'Repasa la Estación 1 y vuelve a intentarlo.'));
+    } else { sShow(); }
+  });
+  function sStart() { sOrder = shuffle(PROGS); sI = 0; sOk = 0; sStreak = 0; $('sEnd').style.display = 'none'; $('sPlay').style.display = ''; sShow(); }
+  $('sAgain').addEventListener('click', sStart);
+  sStart();
+
+  /* ═════════ Estación 3 · Costos ═════════ */
+  function costos() {
+    var u = +$('cUsers').value, y = +$('cYears').value;
+    var pu = Math.max(0, +$('pUnico').value || 0), pm = Math.max(0, +$('pMes').value || 0), pc = Math.max(0, +$('pCap').value || 0);
+    $('cUsersV').textContent = u; $('cYearsV').textContent = y;
+    var items = [
+      { n: 'Propietario', s: 'Pago único por usuario', v: u * pu },
+      { n: 'SaaS', s: 'Suscripción durante ' + y + (y === 1 ? ' año' : ' años'), v: u * pm * 12 * y },
+      { n: 'Libre', s: 'Capacitación y soporte inicial', v: u * pc }
+    ];
+    var max = Math.max.apply(null, items.map(function (i) { return i.v; })), min = Math.min.apply(null, items.map(function (i) { return i.v; }));
+    $('cRows').innerHTML = items.map(function (i) {
+      var w = max > 0 ? (i.v / max * 100) : 0, m = i.v === min ? ' min' : '';
+      return '<div class="cost-row"><div class="cost-name">' + i.n + '<small>' + i.s + '</small></div><div class="cost-track"><div class="cost-fill' + m + '" style="width:' + w + '%"></div></div><div class="cost-val' + m + '">' + money(i.v) + '</div></div>';
+    }).join('');
+    var txt = '';
+    if (pm > 0 && pu > 0) {
+      var meses = pu / pm;
+      txt = 'Punto de equilibrio: la suscripción cuesta lo mismo que la compra única a los ' + (Math.round(meses * 10) / 10) + ' meses. ' +
+        (y * 12 > meses ? 'Con ' + y + (y === 1 ? ' año' : ' años') + ' de uso, ya conviene más comprar que rentar. ' : 'Con ' + y + (y === 1 ? ' año' : ' años') + ' de uso, todavía conviene más rentar. ');
+    }
+    txt += 'Recuerda: el más barato no siempre es el mejor. También pesan el soporte, la compatibilidad, la conexión a Internet y el tiempo que tu equipo necesita para aprender el programa.';
+    $('cInsight').textContent = txt;
+  }
+  ['cUsers', 'cYears', 'pUnico', 'pMes', 'pCap'].forEach(function (id) { $(id).addEventListener('input', costos); });
+  costos();
+
+  /* ═════════ Estación 4 · Situaciones ═════════ */
+  var SC = [
+    { t: 'Una escuela tiene 200 computadoras en su laboratorio, un presupuesto muy limitado y una conexión a Internet inestable. Su personal de TI sabe administrar Linux. Necesitan sistema operativo y programas de oficina para todos los equipos.',
+      o: ['Comprar licencias propietarias para las 200 computadoras', 'Usar software libre (Linux y una suite de oficina libre)', 'Contratar una suscripción SaaS por alumno'], a: 1,
+      e: 'Sin costo de licencia por equipo, funcionando sin depender de Internet y con personal capaz de administrarlo, el software libre encaja mejor. Una suscripción SaaS fallaría con Internet inestable.' },
+    { t: 'Un despacho contable de 6 personas trabaja en la oficina, desde casa y desde el celular. Necesita editar hojas de cálculo en equipo y en tiempo real, sin instalar nada ni dar mantenimiento a servidores.',
+      o: ['Un servicio SaaS de hojas de cálculo colaborativas', 'Software libre instalado en un servidor propio', 'Programa propietario de compra única en cada computadora'], a: 0,
+      e: 'La edición colaborativa desde cualquier lugar, sin instalar ni mantener nada, es la gran fortaleza del modelo SaaS.' },
+    { t: 'Un estudio de diseño debe entregar archivos en el formato estándar que usan sus clientes, necesita soporte técnico oficial inmediato y no puede arriesgarse a fallas de compatibilidad.',
+      o: ['Software propietario estándar de la industria, con soporte', 'Un programa libre poco conocido', 'Una copia gratuita descargada de un sitio no oficial'], a: 0,
+      e: 'Cuando la compatibilidad con clientes y el soporte oficial son críticos, el software propietario estándar de la industria suele justificar su costo.' },
+    { t: 'Una startup quiere adaptar a su medida un sistema de gestión de contenidos, cambiar su código fuente y no pagar licencia por cada usuario.',
+      o: ['Software propietario con licencia por usuario', 'Software libre, que permite estudiar y modificar el código', 'Un servicio SaaS cerrado'], a: 1,
+      e: 'Modificar el código fuente es la libertad 1 del software libre. Con propietario o SaaS no tendrías acceso al código.' },
+    { t: 'Una estudiante necesita editar imágenes para un proyecto, pero no puede pagar un programa de pago. Un amigo le ofrece una copia pirata del programa. ¿Qué debería hacer?',
+      o: ['Instalar la copia pirata, porque es solo para estudiar', 'Usar una alternativa libre (como GIMP) o la versión gratuita, de prueba o educativa del programa', 'Buscar un «crack» en Internet para activarlo'], a: 1,
+      e: 'La piratería viola los derechos de autor y las copias alteradas suelen traer virus. Existen alternativas libres y versiones de prueba o educativas legales.' }
+  ];
+  var dI = 0, dOk = 0, dLocked = false, dBtns = [];
+  function dShow() {
+    var s = SC[dI]; dLocked = false;
+    $('dTag').textContent = 'Situación ' + (dI + 1) + ' de ' + SC.length;
+    $('dNum').textContent = 'Situación ' + (dI + 1); $('dText').textContent = s.t;
+    $('dFeed').textContent = ''; $('dFeed').className = 'dv-feedback'; $('dNext').style.display = 'none';
+    $('dBar').style.width = (dI / SC.length * 100) + '%';
+    var box = $('dOpts'); box.innerHTML = ''; dBtns = [];
+    s.o.forEach(function (txt, oi) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'dv-opt long'; b.textContent = txt;
+      b.addEventListener('click', function () { dAnswer(oi); });
+      box.appendChild(b); dBtns.push(b);
+    });
+  }
+  function dAnswer(oi) {
+    if (dLocked) return; dLocked = true;
+    var s = SC[dI], good = oi === s.a, f = $('dFeed');
+    dBtns.forEach(function (b, j) { b.disabled = true; if (j === s.a) b.classList.add('good'); else if (j === oi) b.classList.add('bad'); });
+    if (good) { dOk++; f.className = 'dv-feedback ok'; f.textContent = 'Buena decisión. ' + s.e; }
+    else { f.className = 'dv-feedback bad'; f.textContent = 'Piénsalo otra vez. ' + s.e; }
+    dI++; $('dBar').style.width = (dI / SC.length * 100) + '%';
+    $('dNext').style.display = ''; $('dNext').textContent = dI >= SC.length ? 'Ver mi resultado' : 'Siguiente situación'; $('dNext').focus();
+  }
+  $('dNext').addEventListener('click', function () {
+    if (dI >= SC.length) {
+      $('dPlay').style.display = 'none'; $('dEnd').style.display = '';
+      $('dEndMsg').textContent = 'Elegiste la mejor opción en ' + dOk + ' de ' + SC.length + ' situaciones. ' + (dOk === SC.length ? 'Decidiste como profesional: analizaste costo, soporte, conexión y legalidad.' : 'Recuerda que no hay un modelo mejor en todos los casos: depende de lo que necesite cada situación.');
+    } else { dShow(); }
+  });
+  $('dAgain').addEventListener('click', function () { dI = 0; dOk = 0; $('dEnd').style.display = 'none'; $('dPlay').style.display = ''; dShow(); });
+  dShow();
+
+  /* ═════════ Estación 5 · Inventario ═════════ */
+  var TIPOS = ['No lo sé', 'Propietario de pago', 'Gratis, pero propietario', 'Software libre', 'SaaS (por Internet)'];
+  var inv = $('invRows');
+  for (var r = 0; r < 5; r++) {
+    var row = document.createElement('div'); row.className = 'inv-row';
+    var opts = TIPOS.map(function (t) { return '<option>' + t + '</option>'; }).join('');
+    row.innerHTML = '<input type="text" maxlength="40" id="iN' + r + '" aria-label="Nombre del programa ' + (r + 1) + '" placeholder="Programa ' + (r + 1) + (r === 0 ? ' (ej. WhatsApp)' : '') + '"><select id="iT' + r + '" aria-label="Tipo de licencia del programa ' + (r + 1) + '">' + opts + '</select>';
+    inv.appendChild(row);
+  }
+  $('iGen').addEventListener('click', function () {
+    var list = [], i;
+    for (i = 0; i < 5; i++) { var n = $('iN' + i).value.trim(); if (n) list.push({ n: n, t: $('iT' + i).value }); }
+    var msg = $('iMsg');
+    if (!list.length) { msg.style.color = '#a12b2b'; msg.textContent = 'Escribe al menos un programa.'; $('iOut').style.display = 'none'; return; }
+    msg.textContent = '';
+    var c = {}; TIPOS.forEach(function (t) { c[t] = 0; }); list.forEach(function (x) { c[x.t]++; });
+    var com = [];
+    com.push('Registraste ' + list.length + (list.length === 1 ? ' programa.' : ' programas.'));
+    if (c['Software libre'] > 0) com.push('Usas ' + c['Software libre'] + ' de software libre: tienes libertad para estudiarlo, modificarlo y compartirlo.');
+    if (c['Gratis, pero propietario'] > 0) com.push(c['Gratis, pero propietario'] + ' son gratis pero propietarios: no pagas, pero tampoco puedes modificarlos ni redistribuirlos.');
+    if (c['SaaS (por Internet)'] > 0) com.push(c['SaaS (por Internet)'] + ' funcionan como servicio: dependes de Internet y tus datos viven en servidores del proveedor.');
+    if (c['Propietario de pago'] > 0) com.push(c['Propietario de pago'] + ' son propietarios de pago: revisa que tengas licencia legal.');
+    if (c['No lo sé'] > 0) com.push('Te quedaron ' + c['No lo sé'] + ' por investigar: busca el apartado «Términos» o «Licencia» de cada programa.');
+    $('iComment').textContent = com.join(' ');
+    $('iSummary').value = 'INVENTARIO DE LICENCIAS DE SOFTWARE\n' + list.map(function (x, k) { return (k + 1) + '. ' + x.n + ' — ' + x.t; }).join('\n') +
+      '\n\nResumen: ' + TIPOS.filter(function (t) { return c[t] > 0; }).map(function (t) { return t + ' (' + c[t] + ')'; }).join(', ') + '.';
+    $('iOut').style.display = 'block';
+  });
+  $('iCopy').addEventListener('click', function () { copyFrom($('iSummary'), $('iCopyMsg')); });
+
+  /* ═════════ Autoevaluación ═════════ */
+  var QUIZ = [
+    { q: '¿Qué significa realmente que un programa sea «software libre»?', o: ['Que siempre es gratis', 'Que te da libertad para usarlo, estudiarlo, modificarlo y compartirlo', 'Que no tiene dueño ni derechos de autor'], a: 1,
+      e: 'Libre se refiere a libertad, no a precio. El programa sí tiene autor y licencia, y esa licencia te concede las cuatro libertades.' },
+    { q: 'Un navegador no cuesta nada, pero su código no está disponible para modificarlo. ¿Cómo se clasifica?', o: ['Software libre', 'SaaS', 'Gratis, pero propietario'], a: 2,
+      e: 'Que sea gratis no lo vuelve libre. Si no puedes ver ni modificar su código, es propietario, aunque no pagues.' },
+    { q: 'Usas un servicio SaaS y dejas de pagar la suscripción. ¿Qué ocurre normalmente?', o: ['Pierdes el acceso al servicio o te limitan el plan', 'Sigues usándolo para siempre, porque ya lo instalaste', 'El programa se vuelve software libre'], a: 0,
+      e: 'En SaaS no posees el programa: lo usas como servicio. Si dejas de pagar, el proveedor puede cerrar tu acceso o reducir el plan.' },
+    { q: '¿Qué exige una licencia con «copyleft»?', o: ['Que pagues una cuota por cada copia', 'Que no puedas copiar el programa', 'Que las versiones modificadas que compartas conserven las mismas libertades'], a: 2,
+      e: 'El copyleft usa los derechos de autor para que el software siga siendo libre, también en las versiones modificadas que se distribuyan.' },
+    { q: '¿Cuál es un riesgo real de usar software pirata?', o: ['Ninguno, si es solo para estudiar', 'Virus incluidos, falta de actualizaciones y problemas legales', 'Que el programa se convierta en software libre'], a: 1,
+      e: 'Las copias alteradas suelen incluir malware y no reciben actualizaciones de seguridad, además de violar los derechos de autor.' }
+  ];
+  var quiz = $('quiz');
+  QUIZ.forEach(function (it, qi) {
+    var box = document.createElement('div'); box.className = 'q'; box.id = 'q' + qi;
+    var html = '<div class="q-text">' + (qi + 1) + '. ' + it.q + '</div>';
+    it.o.forEach(function (op, oi) { html += '<label><input type="radio" name="qq' + qi + '" value="' + oi + '"> ' + op + '</label>'; });
+    html += '<div class="q-expl"><strong>Explicación:</strong> ' + it.e + '</div>';
+    box.innerHTML = html; quiz.appendChild(box);
+  });
+  $('btnQuiz').addEventListener('click', function () {
+    var right = 0, answered = 0;
+    QUIZ.forEach(function (it, qi) {
+      var box = $('q' + qi), s = box.querySelector('input:checked');
+      box.classList.remove('right', 'wrong', 'shown');
+      box.querySelectorAll('label').forEach(function (l) { l.classList.remove('chosen'); });
+      if (!s) return;
+      answered++; s.parentNode.classList.add('chosen');
+      var ok = parseInt(s.value, 10) === it.a; if (ok) right++;
+      box.classList.add(ok ? 'right' : 'wrong', 'shown');
+    });
+    var r = $('quizResult');
+    if (answered < QUIZ.length) { r.textContent = 'Responde las ' + QUIZ.length + ' preguntas para ver tu resultado (te faltan ' + (QUIZ.length - answered) + ').'; return; }
+    r.textContent = 'Resultado: ' + right + ' de ' + QUIZ.length + '. ' + (right === QUIZ.length ? 'Excelente: dominas el tema.' : (right >= 3 ? 'Vas muy bien. Lee las explicaciones de las que fallaste.' : 'Regresa a las estaciones y vuelve a intentarlo.'));
+  });
+
+  /* ═════════ Para qué me sirve ═════════ */
+  var ROLES = [
+    { n: 'Desarrollo de software', s: 'Cuando programas un sistema o una app, casi nunca escribes todo desde cero: usas librerías, frameworks y herramientas hechas por otras personas. Cada una trae su licencia.',
+      u: 'Revisas la licencia de cada librería antes de incluirla. Algunas licencias libres permiten usarlas casi sin condiciones y otras imponen reglas sobre cómo puedes distribuir tu producto. También eliges bajo qué licencia publicarás tu propio código.',
+      r: 'Podrías usar un componente que no puedes distribuir legalmente con tu producto y tener que rehacer trabajo ya terminado.' },
+    { n: 'Soporte y administración de TI', s: 'Una empresa tiene decenas de equipos y programas. Alguien debe saber cuáles tienen licencia, cuántas copias se pagaron y cuándo vencen.',
+      u: 'Llevas un inventario de licencias, decides qué programas instalar en cada equipo y comparas el costo entre comprar, rentar o usar software libre, justo como lo hiciste en la Estación 3.',
+      r: 'Si la empresa usa más copias de las que pagó, puede recibir sanciones y multas en una auditoría. Si deja vencer una suscripción, un área completa puede quedarse sin su herramienta de trabajo.' },
+    { n: 'Emprendimiento y negocios', s: 'Quien abre un negocio necesita programas para facturar, diseñar, comunicarse y vender, y casi siempre con poco presupuesto.',
+      u: 'Eliges herramientas SaaS para empezar sin una gran inversión y puedes crecer pagando más usuarios o planes. También sabes cuándo conviene una alternativa libre para ahorrar.',
+      r: 'Podrías gastar de más en suscripciones que no usas, o quedarte atado a un proveedor que no te deja llevarte tus datos.' },
+    { n: 'Seguridad informática', s: 'Uno de los primeros puntos débiles de una organización es el software que no debería estar instalado.',
+      u: 'Detectas programas sin licencia, que suelen traer virus y no reciben actualizaciones de seguridad, y recomiendas alternativas legales. En servicios SaaS, revisas dónde se guardan los datos y quién puede acceder a ellos.',
+      r: 'Una sola copia pirata puede abrir la puerta a un robo de información de toda la organización.' },
+    { n: 'Mi vida como estudiante', s: 'Desde hoy mismo usas decenas de programas para estudiar, trabajar en equipo y entretenerte.',
+      u: 'Sabes qué tienes permitido hacer con cada programa, buscas versiones educativas o alternativas libres cuando no puedes pagar y sabes cuándo una herramienta «gratis» en realidad se paga con tus datos o con anuncios.',
+      r: 'Podrías perder tu trabajo escolar si una cuenta o prueba gratuita termina, o instalar un programa dañino por buscar una copia gratis.' }
+  ];
+  var rTabs = $('roleTabs'), rBtns = [];
+  function showRole(i) {
+    var r = ROLES[i];
+    rBtns.forEach(function (b, j) { b.classList.toggle('active', j === i); b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+    $('roleDetail').innerHTML = '<h3>' + r.n + '</h3><p><b>La situación</b>' + r.s + '</p><p><b>Cómo usas lo aprendido hoy</b>' + r.u + '</p><p><b>Si no lo sabes</b>' + r.r + '</p>';
+  }
+  ROLES.forEach(function (r, i) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'chip-btn'; b.textContent = r.n;
+    b.addEventListener('click', function () { showRole(i); });
+    rTabs.appendChild(b); rBtns.push(b);
+  });
+  showRole(0);
+})();
+</script>
+</body>
+</html>
